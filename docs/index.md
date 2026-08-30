@@ -6,7 +6,7 @@ description: Sistem Waspada Suasana & Adaptasi Iklim
 
 # SWASANA - Sistem Waspada Suasana & Adaptasi Iklim
 
-**Project Senior Project TI**  
+**Project Junior Project TI**  
 Departemen Teknik Elektro dan Teknologi Informasi, Fakultas Teknik, Universitas Gadjah Mada
 
 ## Kelompok & Anggota
