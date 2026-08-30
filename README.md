@@ -1,6 +1,9 @@
 # Junpro Kelompok 6
 
 JUNPRO6
+Ketua Kelompok: Marcelinus Dinoglide Yoga Prakoso - 533842
+Anggota 1: Muhammad Izzuddin Prakoso - 24/537712/TK/59618
+Anggota 2:
 
 Ketua Kelompok: Marcelinus Dinoglide Yoga Prakoso - 24/533842/TK/59152
 Anggota 1: 
