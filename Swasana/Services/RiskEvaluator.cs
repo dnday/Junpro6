@@ -4,22 +4,38 @@ namespace Swasana.Services;
 
 public class RiskEvaluator
 {
-    // Sama dengan isi seed risk_levels. Hujan & angin mengikuti kategori BMKG per jam.
-    private double suhuWaspada = 33;
-    private double suhuBahaya = 35;
-    private double hujanSedang = 5;    // mm/jam
-    private double hujanLebat = 10;    // mm/jam
-    private double anginKencang = 45;  // km/jam (~25 knot)
+    // private + readonly: daftar aturan tidak bisa dibaca maupun diganti dari luar class
+    private readonly List<RiskRule> rules;
 
+    public RiskEvaluator()
+    {
+        rules = new List<RiskRule>
+        {
+            new SuhuRule(),
+            new HujanRule(),
+            new HujanAnginRule()
+        };
+    }
+
+    // Risiko akhir = tingkat tertinggi di antara seluruh aturan.
     public RiskLevel evaluateRisk(WeatherData data)
     {
-        if (data.Temperature > suhuBahaya ||
-            (data.Rainfall >= hujanLebat && data.WindSpeed >= anginKencang))
-            return RiskLevel.Bahaya;
+        var hasil = RiskLevel.Aman;
 
-        if (data.Temperature > suhuWaspada || data.Rainfall >= hujanSedang)
-            return RiskLevel.Waspada;
+        foreach (var rule in rules)
+        {
+            // Baris ini menjalankan Evaluate() milik SuhuRule, HujanRule, atau
+            // HujanAnginRule sesuai objek yang sedang diproses (polymorphism).
+            var level = rule.Evaluate(data);
+            if (level > hasil) hasil = level;
+        }
 
-        return RiskLevel.Aman;
+        return hasil;
+    }
+
+    // Hasil penilaian tiap aturan, dipakai untuk menampilkan alasan di layar.
+    public List<(string Nama, RiskLevel Level)> rincian(WeatherData data)
+    {
+        return rules.Select(rule => (rule.Nama, rule.Evaluate(data))).ToList();
     }
 }

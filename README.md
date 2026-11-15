@@ -17,7 +17,9 @@ Anggota 2: Raka Bagus Samudra - 24/543213/TK/60349
    cd Swasana
    dotnet run
    dotnet run -- Sleman -7.7162 110.3555
+   dotnet run -- risk
    ```
+   `dotnet run -- risk` menampilkan evaluasi risiko cuaca dan tidak memerlukan database.
    Program akan meminta password user `postgres`. Bisa juga diisi lewat environment variable `SWASANA_DB`, contoh:
    `Host=localhost;Port=5432;Database=swasana_db;Username=postgres;Password=xxx`
 
@@ -26,3 +28,5 @@ Struktur `Swasana/`:
 - `Data/BaseRepository.cs`: abstract class induk repository (GetAll, GetById diwarisi; Insert, MapRow di-override)
 - `Data/UserRepository.cs`, `Data/LocationRepository.cs`: turunan untuk tabel `users` dan `locations`
 - `Models/`, `Services/`: class dari class diagram (`classDiagram/classCode.cs`)
+- `Services/RiskRule.cs`: abstract class `RiskRule` dengan turunan `SuhuRule`, `HujanRule`, `HujanAnginRule`
+- `Services/RiskEvaluator.cs`: menjalankan seluruh aturan dan mengambil tingkat risiko tertinggi
