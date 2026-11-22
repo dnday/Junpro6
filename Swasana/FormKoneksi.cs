@@ -10,6 +10,9 @@ namespace Swasana
         public FormKoneksi()
         {
             InitializeComponent();
+            Animasi.FadeIn(this);
+            Animasi.Hover(btnSimpan, Color.FromArgb(28, 104, 124));
+            Animasi.Hover(btnBatal, Color.FromArgb(231, 241, 244));
 
             // Tampilkan pengaturan lama (kecuali password) kalau sudah pernah disimpan
             var lama = DatabaseSetup.LoadConnectionString();
@@ -28,8 +31,7 @@ namespace Swasana
             if (!int.TryParse(tbPort.Text, out var port) || string.IsNullOrWhiteSpace(tbHost.Text)
                 || string.IsNullOrWhiteSpace(tbDatabase.Text) || string.IsNullOrWhiteSpace(tbUsername.Text))
             {
-                MessageBox.Show("Host, port (angka), database, dan username wajib diisi.", "Data belum lengkap",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                Pesan("Host, database, dan username wajib diisi, dan port harus berupa angka (biasanya 5432).");
                 return;
             }
 
@@ -42,25 +44,36 @@ namespace Swasana
                 Password = tbPassword.Text
             };
 
+            Pesan("Menyambungkan dan menyiapkan tabel...", error: false);
+            btnSimpan.Enabled = false;
             Cursor = Cursors.WaitCursor;
+            Refresh();
             try
             {
                 DatabaseSetup.EnsureDatabase(builder.ConnectionString);
                 DatabaseSetup.SaveConnectionString(builder.ConnectionString);
                 ConnectionString = builder.ConnectionString;
-                MessageBox.Show($"Terhubung ke database '{builder.Database}'. Tabel sudah siap.", "Berhasil",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
                 DialogResult = DialogResult.OK;
+            }
+            catch (PostgresException ex) when (ex.SqlState == "28P01")
+            {
+                Pesan("Password PostgreSQL salah. Pakai password yang dibuat saat menginstal PostgreSQL.");
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Gagal terhubung ke PostgreSQL:\n" + ex.Message, "Koneksi gagal",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Pesan("Tidak bisa tersambung ke PostgreSQL. Pastikan service PostgreSQL berjalan. (" + ex.Message + ")");
             }
             finally
             {
+                btnSimpan.Enabled = true;
                 Cursor = Cursors.Default;
             }
+        }
+
+        private void Pesan(string teks, bool error = true)
+        {
+            lblPesan.ForeColor = error ? Color.FromArgb(198, 40, 40) : Tema.Redup;
+            lblPesan.Text = teks;
         }
 
         private void btnBatal_Click(object sender, EventArgs e)

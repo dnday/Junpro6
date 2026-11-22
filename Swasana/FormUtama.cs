@@ -13,7 +13,13 @@ namespace Swasana
             InitializeComponent();
             this.db = db;
             this.user = user;
-            lblUser.Text = "Masuk sebagai : " + user.Username;
+            lblUser.Text = "Halo, " + user.Username;
+            picLogo.Image = Ikon.Muat("partly-cloudy-day");
+            btnCekCuaca.Image = new Bitmap(Ikon.Muat("partly-cloudy-day"), 40, 40);
+            btnRiwayat.Image = new Bitmap(Ikon.Muat("raindrop-measure"), 40, 40);
+            Animasi.FadeIn(this);
+            foreach (var b in new[] { btnCekCuaca, btnRiwayat, btnTentang, btnKeluar })
+                Animasi.Hover(b, Color.FromArgb(231, 241, 244));
         }
 
         // Menu disembunyikan selama form tujuan terbuka, lalu tampil lagi saat ditutup

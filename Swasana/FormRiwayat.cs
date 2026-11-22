@@ -15,6 +15,9 @@ namespace Swasana
             InitializeComponent();
             history = new WeatherHistoryManager(db);
             this.user = user;
+            Animasi.FadeIn(this);
+            Animasi.Hover(btnCari, Color.FromArgb(28, 104, 124));
+            Animasi.Hover(btnKembali, Color.FromArgb(231, 241, 244));
         }
 
         private void FormRiwayat_Load(object sender, EventArgs e)
@@ -25,8 +28,7 @@ namespace Swasana
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Gagal membaca riwayat dari database:\n" + ex.Message, "Riwayat",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                lblKosong.Text = "Riwayat tidak bisa dibaca dari database: " + ex.Message;
             }
             TampilkanRiwayat("");
         }
@@ -41,10 +43,23 @@ namespace Swasana
             dgvRiwayat.Rows.Clear();
             foreach (var h in dataRiwayat.Where(h => h.CityName.Contains(kataKunci, StringComparison.OrdinalIgnoreCase)))
             {
-                dgvRiwayat.Rows.Add(h.SearchedAt.ToString("dd/MM/yyyy HH:mm"), h.CityName,
-                    h.Temperature.ToString("0.0"), h.Rainfall.ToString("0.0"), h.RiskLevel.ToString());
+                var baris = dgvRiwayat.Rows[dgvRiwayat.Rows.Add(Ikon.Status(h.RiskLevel), h.RiskLevel.ToString(),
+                    h.SearchedAt.ToString("dd/MM/yyyy HH:mm"), h.CityName,
+                    h.Temperature.ToString("0.0"), h.Rainfall.ToString("0.0"), h.WindSpeed.ToString("0.0"))];
+                baris.Cells[colStatus.Index].Style.ForeColor = h.RiskLevel == RiskLevel.Waspada
+                    ? Color.FromArgb(150, 100, 0)   // kuning gelap supaya terbaca di latar putih
+                    : Tema.WarnaStatus(h.RiskLevel);
+                baris.Cells[colStatus.Index].Style.Font = new Font("Segoe UI Semibold", 9.75F);
             }
-            lblJumlah.Text = $"{dgvRiwayat.Rows.Count} data";
+
+            var jumlah = dgvRiwayat.Rows.Count;
+            lblJumlah.Text = $"{jumlah} data";
+            lblKosong.Visible = jumlah == 0;
+            if (jumlah == 0 && dataRiwayat.Count > 0)
+                lblKosong.Text = $"Tidak ada riwayat untuk \"{kataKunci}\". Coba nama lokasi lain.";
+            else if (jumlah == 0 && !lblKosong.Text.StartsWith("Riwayat tidak bisa"))
+                lblKosong.Text = "Belum ada riwayat. Buka Cek cuaca, hasilnya otomatis tersimpan di sini.";
+            lblKosong.BringToFront();
         }
 
         private void btnKembali_Click(object sender, EventArgs e)

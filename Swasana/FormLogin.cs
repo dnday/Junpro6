@@ -12,6 +12,10 @@ namespace Swasana
         {
             InitializeComponent();
             Db = db;
+            picLogo.Image = Ikon.Muat("partly-cloudy-day");
+            Animasi.FadeIn(this);
+            Animasi.Hover(btnLogin, Color.FromArgb(28, 104, 124));
+            Animasi.Hover(btnClose, Color.FromArgb(231, 241, 244));
         }
 
         private void btnLogin_Click(object sender, EventArgs e)
@@ -19,10 +23,13 @@ namespace Swasana
             var username = tbUsername.Text.Trim();
             if (username.Length == 0)
             {
-                MessageBox.Show("Username wajib diisi.", "Login", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                lblPesan.Text = "Isi username dulu untuk masuk.";
+                tbUsername.Focus();
                 return;
             }
 
+            lblPesan.Text = "";
+            Cursor = Cursors.WaitCursor;
             try
             {
                 // ponytail: login cukup username (tabel users belum punya kolom password)
@@ -32,9 +39,11 @@ namespace Swasana
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Tidak bisa mengakses database:\n" + ex.Message +
-                    "\n\nPeriksa lewat \"Pengaturan Database\".", "Login gagal",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                lblPesan.Text = "Database tidak bisa diakses. Periksa lewat \"Atur koneksi database\". (" + ex.Message + ")";
+            }
+            finally
+            {
+                Cursor = Cursors.Default;
             }
         }
 
@@ -44,6 +53,7 @@ namespace Swasana
             if (setup.ShowDialog(this) == DialogResult.OK)
             {
                 Db = new DatabaseContext(setup.ConnectionString);
+                lblPesan.Text = "";
             }
         }
 
