@@ -37,6 +37,15 @@ public class LocationRepository : BaseRepository<Location>
         return MapRows(ds);
     }
 
+    public Location? FindByUserAndCity(int userId, string cityName)
+    {
+        var ds = Context.executeQuery(
+            "SELECT * FROM locations WHERE user_id = @userId AND city_name = @cityName LIMIT 1",
+            new NpgsqlParameter("userId", userId),
+            new NpgsqlParameter("cityName", cityName));
+        return MapRows(ds).FirstOrDefault();
+    }
+
     protected override Location MapRow(DataRow row)
     {
         var location = new Location

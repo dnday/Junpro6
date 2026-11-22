@@ -1,3 +1,6 @@
+using System.Text.Json;
+using Swasana.Services;
+
 namespace Swasana.Models;
 
 public class WeatherData
@@ -11,13 +14,17 @@ public class WeatherData
     public double Rainfall { get; set; }      // mm/jam
     public DateTime Timestamp { get; set; }
 
-    public static WeatherData fetchFromAPI(Location location)
+    // Ambil cuaca terkini lokasi dari Open-Meteo Web API
+    public static async Task<WeatherData> fetchFromAPI(Location location)
     {
-        throw new NotImplementedException();
+        var (lat, lon) = location.getCoordinates();
+        var data = await new WeatherService().GetCurrentAsync(lat, lon);
+        data.LocationId = location.LocationId;
+        return data;
     }
 
     public string toJSON()
     {
-        throw new NotImplementedException();
+        return JsonSerializer.Serialize(this);
     }
 }

@@ -1,14 +1,33 @@
+using System.Data;
+using Npgsql;
+using Swasana.Data;
 using Swasana.Models;
 
 namespace Swasana.Services;
 
 public class ActionRecommender
 {
-    // Satu level risiko bisa punya banyak saran (relasi 1:N di tabel recommendations)
-    private Dictionary<RiskLevel, List<string>> recommendationRules = new Dictionary<RiskLevel, List<string>>();
+    private readonly DatabaseContext context;
+
+    // Satu level risiko bisa punya banyak saran (relasi 1:N di tabel recommendations).
+    // Diisi dari database saat pertama kali diminta, lalu disimpan di sini.
+    private readonly Dictionary<RiskLevel, List<string>> recommendationRules = new Dictionary<RiskLevel, List<string>>();
+
+    public ActionRecommender(DatabaseContext context)
+    {
+        this.context = context;
+    }
 
     public List<string> getRecommendation(RiskLevel level)
     {
-        throw new NotImplementedException();
+        if (!recommendationRules.TryGetValue(level, out var saran))
+        {
+            var ds = context.executeQuery(
+                "SELECT action_text FROM recommendations WHERE risk_id = @risk ORDER BY rec_id",
+                new NpgsqlParameter("risk", (short)level));
+            saran = ds.Tables[0].Rows.Cast<DataRow>().Select(r => Convert.ToString(r["action_text"]) ?? "").ToList();
+            recommendationRules[level] = saran;
+        }
+        return saran;
     }
 }
