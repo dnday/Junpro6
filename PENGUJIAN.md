@@ -40,7 +40,7 @@ Diuji manual (di luar skrip otomatis):
 
 ## 2. Pengujian unit (xUnit)
 
-Perintah: `dotnet test Swasana.Tests` → **37 lulus, 0 gagal**.
+Perintah: `dotnet test Swasana.Tests` → **53 lulus, 0 gagal**.
 
 | Test | Yang diuji |
 |---|---|
@@ -54,6 +54,9 @@ Perintah: `dotnet test Swasana.Tests` → **37 lulus, 0 gagal**.
 | `NamaCuaca_SesuaiKodeWmo` (7 kasus) | Kode cuaca WMO dipetakan ke ikon yang benar (cerah siang/malam, hujan, hujan lebat, badai) |
 | `SemuaIkonTertanamDiAplikasi` | Ikon Meteocons tertanam di dalam exe |
 | `SetLocation_TolakKoordinatDiLuarRentang` | `Location.setLocation()` menolak lat > 90 dan lon > 180 |
+| `KategoriAqi_BatasUsAqi`, `KategoriUv_SkalaWho` | Batas kategori kualitas udara (50/100/150/200) dan indeks UV (3/6/8/11) |
+| `NilaiAturan_MenampilkanNilaiYangDinilai`, `WarnaLangit_MalamTidakDipengaruhiKodeCuaca` | Nilai yang dinilai tiap aturan ditampilkan; langit malam sama untuk semua kode cuaca |
+| `BuatCsv_*` | Ekspor riwayat: header dan satu baris per data; nama lokasi dengan koma atau tanda kutip diberi kutip, awalan `=` diamankan dari rumus Excel |
 
 ## 3. Pengujian instalasi dan aksesibilitas
 

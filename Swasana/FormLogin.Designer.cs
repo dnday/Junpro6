@@ -104,7 +104,7 @@ namespace Swasana
             lblInfo.Name = "lblInfo";
             lblInfo.Size = new Size(344, 18);
             lblInfo.TabIndex = 3;
-            lblInfo.Text = "Belum punya akun? Ketik username baru, akun dibuat otomatis.";
+            lblInfo.Text = "Belum punya akun? Ketik username baru, lalu konfirmasi.";
             //
             // lblPesan
             //

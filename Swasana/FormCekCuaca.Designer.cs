@@ -31,7 +31,7 @@ namespace Swasana
             lstSaran = new ListBox();
             flowFavorit = new FlowLayoutPanel();
             lblPesan = new Label();
-            pnlHero = new Panel();
+            pnlHero = new PanelGandaBuffer();
             lblLokasiHasil = new Label();
             lblSuhu = new Label();
             lblKondisi = new Label();
@@ -783,7 +783,7 @@ namespace Swasana
         private ListBox lstSaran;
         private FlowLayoutPanel flowFavorit;
         private Label lblPesan;
-        private Panel pnlHero;
+        private PanelGandaBuffer pnlHero;
         private Label lblLokasiHasil;
         private Label lblSuhu;
         private Label lblKondisi;

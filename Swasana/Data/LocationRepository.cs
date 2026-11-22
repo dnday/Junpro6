@@ -37,6 +37,19 @@ public class LocationRepository : BaseRepository<Location>
         return MapRows(ds);
     }
 
+    public Location? GetTerakhirDicek(int userId)
+    {
+        var ds = Context.executeQuery(
+            @"SELECT l.* FROM search_history h
+              JOIN weather_data w ON w.weather_id = h.weather_id
+              JOIN locations l    ON l.location_id = w.location_id
+              WHERE h.user_id = @userId
+              ORDER BY h.searched_at DESC
+              LIMIT 1",
+            new NpgsqlParameter("userId", userId));
+        return MapRows(ds).FirstOrDefault();
+    }
+
     // ===== Lokasi favorit =====
     public List<Location> GetFavorites(int userId)
     {

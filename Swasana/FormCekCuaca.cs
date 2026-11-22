@@ -74,13 +74,14 @@ namespace Swasana
             tip.SetToolTip(btnFavorit, "Simpan atau hapus lokasi ini dari favorit");
             picStatus.Visible = false;
             timerKartu.Tick += timerKartu_Tick;
-            Shown += async (s, e) => await MuatFavoritAsync();
+            Shown += async (s, e) =>
+            {
+                await MuatFavoritAsync();
+                await MuatTerakhirAsync();
+            };
             TampilkanKosong();
 
             loading = new GarisLoading(pnlHero, Color.White);
-            // Panel cuaca digambar ulang ~30 kali per detik untuk adegan animasi -> pakai double buffering
-            typeof(Panel).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
-                .SetValue(pnlHero, true);
             timerAdegan.Tick += (s, e) =>
             {
                 var sekarang = jamAdegan.Elapsed.TotalSeconds;
@@ -116,10 +117,22 @@ namespace Swasana
 
         private async void btnCek_Click(object sender, EventArgs e)
         {
-            await Jalankan("Mengambil cuaca terkini...", AmbilCuaca);
+            await Jalankan("Mengambil cuaca terkini...", () => AmbilCuaca());
         }
 
-        private async Task<bool> AmbilCuaca()
+        private async Task MuatTerakhirAsync()
+        {
+            Location? terakhir;
+            try { terakhir = await Task.Run(() => lokasiRepo.GetTerakhirDicek(user.UserId)); }
+            catch (Exception) { return; }
+            if (terakhir == null || IsDisposed || tbLokasi.Text.Length > 0) return;
+
+            var (lat, lon) = terakhir.getCoordinates();
+            IsiLokasi(terakhir.Name, lat, lon);
+            await Jalankan("Mengambil cuaca terkini...", () => AmbilCuaca(simpan: false));
+        }
+
+        private async Task<bool> AmbilCuaca(bool simpan = true)
         {
             {
                 // Koordinat kosong -> cari dulu dari nama lokasi
@@ -142,8 +155,11 @@ namespace Swasana
                 data.RiskLevel = riskEvaluator.evaluateRisk(data);
                 TampilkanHasil(lokasi.Name, data);
 
-                await Task.Run(() => history.saveHistory(user, lokasi, data));
-                if (!IsDisposed) lblSumber.Text += " Hasil ini sudah tersimpan ke riwayat.";
+                if (simpan)
+                {
+                    await Task.Run(() => history.saveHistory(user, lokasi, data));
+                    if (!IsDisposed) lblSumber.Text += " Hasil ini sudah tersimpan ke riwayat.";
+                }
                 return true;
             }
         }
@@ -269,7 +285,7 @@ namespace Swasana
         {
             if (e.Index < 0 || lstSaran.Items[e.Index] is not SaranLokasi s) return;
             var dipilih = (e.State & DrawItemState.Selected) != 0;
-            using (var latar = new SolidBrush(dipilih ? Color.FromArgb(214, 232, 238) : Color.White))
+            using (var latar = new SolidBrush(dipilih ? Tema.Terpilih : Color.White))
                 e.Graphics.FillRectangle(latar, e.Bounds);
             TextRenderer.DrawText(e.Graphics, s.Nama, Tema.HurufTebal, new Point(e.Bounds.X + komponen.Px(8), e.Bounds.Y + komponen.Px(2)), Tema.Tinta);
             TextRenderer.DrawText(e.Graphics, s.Keterangan, Tema.HurufKecil, new Point(e.Bounds.X + komponen.Px(8), e.Bounds.Y + komponen.Px(19)), Tema.Redup);
@@ -538,11 +554,7 @@ namespace Swasana
             adegan.Gambar(e.Graphics, pnlHero.ClientSize);
         }
 
-        private void Pesan(string teks, bool error = true)
-        {
-            lblPesan.ForeColor = error ? Tema.Galat : Tema.Redup;
-            lblPesan.Text = teks;
-        }
+        private void Pesan(string teks, bool error = true) => Tema.Pesan(lblPesan, teks, error);
 
         // Kunci tombol selama proses berjalan; kesalahan ditampilkan di form, bukan di kotak dialog
         private async Task Jalankan(string pesanProses, Func<Task<bool>> aksi)
