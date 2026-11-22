@@ -47,25 +47,31 @@ Skema SQL lengkap ada di `swasana_schema.sql` jika ingin dijalankan manual lewat
 1. **Masuk**: ketik username lalu **Masuk**. Username baru otomatis didaftarkan, dan setiap username punya riwayat sendiri.
 2. **Menu**: pilih **Cek cuaca**, **Riwayat**, **Tentang SWASANA**, atau **Keluar**.
 3. **Cek cuaca**:
+   - Lokasi **favorit** tampil sebagai tombol di bawah kotak lokasi: klik sekali untuk langsung mengecek cuacanya. Tekan **☆** untuk menyimpan lokasi yang sedang dipilih (berubah menjadi ★), tekan lagi atau klik kanan tombol favorit untuk menghapusnya.
    - Mulai ketik nama kota, misalnya `yog`. Daftar saran muncul (lokasi Indonesia di atas). Pilih dengan klik, atau dengan panah ↑/↓ lalu Enter, dan cuacanya langsung tampil.
    - Atau klik **Lokasi saya** untuk memakai lokasi perangkat (layanan lokasi Windows harus aktif: *Settings › Privacy & security › Location*).
    - Bisa juga mengisi latitude/longitude sendiri (koma atau titik sama-sama diterima) lalu klik **Cek cuaca**.
    - Hasilnya:
      - panel cuaca dengan suhu, kondisi, dan suhu yang terasa, dengan latar dan animasi yang menyesuaikan cuaca;
-     - prakiraan 8 jam;
-     - kelembapan, angin, curah hujan, dan indeks UV;
+     - prakiraan **per jam** (8 jam) atau **7 hari** (suhu maks/min dan peluang hujan), pilih dengan tombol di pojok panel prakiraan;
+     - kelembapan, angin, curah hujan, indeks UV, dan kualitas udara (US AQI);
      - **status risiko** beserta alasannya;
      - kartu **saran tindakan**.
    - Setiap hasil otomatis tersimpan ke riwayat.
-4. **Riwayat**: semua pengecekan milik user yang sedang masuk, terbaru di atas. Ketik nama lokasi lalu **Cari** untuk menyaring. Jendela ini bisa diperbesar.
+4. **Riwayat**: grafik **tren suhu maksimum & minimum harian** dari data yang tersimpan, lalu daftar semua pengecekan milik user yang sedang masuk, terbaru di atas. Ketik nama lokasi lalu **Cari** untuk menyaring. Jendela ini bisa diperbesar.
 
 ### Aturan risiko
 
-| Status | Kondisi |
-|---|---|
-| Bahaya | suhu > 35 °C, **atau** hujan ≥ 10 mm/jam **dan** angin ≥ 45 km/jam |
-| Waspada | suhu > 33 °C, **atau** hujan ≥ 5 mm/jam |
-| Aman | selain kondisi di atas |
+Status akhir = tingkat tertinggi dari enam aturan berikut:
+
+| Aturan | Waspada | Bahaya |
+|---|---|---|
+| Suhu udara | > 33 °C | > 35 °C |
+| Curah hujan | ≥ 5 mm/jam | – |
+| Hujan + angin | – | hujan ≥ 10 mm/jam **dan** angin ≥ 45 km/jam |
+| Indeks UV (skala WHO) | ≥ 8 | ≥ 11 |
+| Heat index (suhu + kelembapan, rumus NOAA) | ≥ 32 °C | ≥ 41 °C |
+| Kualitas udara (US AQI) | 101–150 | ≥ 151 |
 
 ### Animasi
 
@@ -87,7 +93,7 @@ Koordinat lokasi yang dicek dikirim ke Open-Meteo (data cuaca). Untuk tombol **L
 
 ## 7. Kredit
 
-- Data cuaca & geocoding: [Open-Meteo](https://open-meteo.com) (CC BY 4.0)
+- Data cuaca, kualitas udara & geocoding: [Open-Meteo](https://open-meteo.com) (CC BY 4.0)
 - Nama tempat dari koordinat: [BigDataCloud](https://www.bigdatacloud.com) reverse geocoding (client API gratis)
 - Ikon cuaca: [Meteocons](https://github.com/basmilius/meteocons) oleh Bas Milius (MIT)
 - Animasi transisi: [FluentTransitions](https://github.com/awaescher/FluentTransitions) (MIT)

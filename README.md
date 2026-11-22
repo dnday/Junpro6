@@ -9,10 +9,11 @@ Anggota 2: Raka Bagus Samudra - 24/543213/TK/60349
 ## Fitur (MVP Modul 10)
 
 - Login per username, setiap user punya riwayat sendiri
-- Cek cuaca terkini lewat **Open-Meteo Web API**: saran lokasi saat mengetik, tombol **Lokasi saya** (layanan lokasi Windows), prakiraan 8 jam, suhu terasa, indeks UV
-- Penilaian risiko Aman / Waspada / Bahaya lewat aturan `RiskRule` (inheritance + polymorphism)
+- Cek cuaca terkini lewat **Open-Meteo Web API**: saran lokasi saat mengetik, tombol **Lokasi saya** (layanan lokasi Windows), prakiraan per jam & 7 hari, suhu terasa, indeks UV, kualitas udara (AQI)
+- **Lokasi favorit** (kolom `is_favorite` di tabel `locations`) untuk cek cuaca sekali klik
+- Penilaian risiko Aman / Waspada / Bahaya lewat 6 turunan `RiskRule` (inheritance + polymorphism): suhu, hujan, hujan + angin, UV, heat index, kualitas udara
 - Kartu saran tindakan dari tabel `recommendations`, dengan ikon per kategori
-- Riwayat pengecekan tersimpan di PostgreSQL, bisa dicari per lokasi
+- Riwayat pengecekan tersimpan di PostgreSQL, bisa dicari per lokasi, dengan grafik tren suhu harian dari `weather_data`
 - Database & tabel dibuat otomatis dari aplikasi
 - Tampilan bergaya aplikasi cuaca: ikon Meteocons, latar langit sesuai cuaca, adegan animasi (hujan, panas, badai, angin, malam), kartu risiko berputar 3D, transisi FluentTransitions. Animasi mati otomatis kalau efek animasi Windows dimatikan
 
