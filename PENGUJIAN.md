@@ -1,6 +1,6 @@
 # Pengujian SWASANA (MVP Modul 10)
 
-Pengujian dilakukan pada 22/11/2026 terhadap `Swasana.exe` hasil publish (Windows 11, PostgreSQL 18). Database `swasana_db` dihapus dulu sebelum pengujian, supaya pembuatan database otomatis ikut teruji.
+Pengujian terakhir dilakukan pada 22/11/2026 malam (sekitar pukul 21.30 WIB) terhadap kode `main` terbaru (Windows 11, PostgreSQL 18). Database `swasana_db` dihapus dulu sebelum pengujian, supaya pembuatan database otomatis ikut teruji. Karena memakai cuaca sungguhan, nilai suhu dan status di bawah mengikuti kondisi saat pengujian.
 Langkah-langkahnya dijalankan otomatis lewat UI Automation. Bukti screenshot ada di folder [`docs/pengujian/`](docs/pengujian/).
 
 ## 1. Pengujian fungsional (black box)
@@ -17,18 +17,20 @@ Langkah-langkahnya dijalankan otomatis lewat UI Automation. Bukti screenshot ada
 | T08 | Cek cuaca | Lokasi kosong | Pesan validasi di form | *"Isi nama lokasi dulu, misalnya Sleman."* | Lulus |
 | T09 | Cek cuaca | Lokasi `Xyzqwerty` | Pesan lokasi tidak ditemukan | *"Lokasi "Xyzqwerty" tidak ditemukan. ..."* | Lulus |
 | T10 | Saran lokasi (Web API) | Ketik `Slem`, lalu tekan Enter | Daftar saran muncul; memilih saran mengisi nama dan koordinat lalu langsung mengecek cuaca | 8 saran tampil; terpilih *Sleman, Yogyakarta* (-7.7156, 110.3556) | Lulus |
-| T11 | Cuaca + risiko (Web API) | Hasil cek Sleman | Suhu, kondisi, detail, prakiraan per jam, status, rincian 6 aturan beserta nilainya, dan rekomendasi tampil, lalu tersimpan | 25,5°, Hujan sedang, 90 %, AQI 125 → **Waspada** (dari aturan kualitas udara); tersimpan | Lulus |
+| T11 | Cuaca + risiko (Web API) | Hasil cek Sleman | Suhu, kondisi, detail, prakiraan per jam, status, rincian 6 aturan beserta nilainya, dan rekomendasi tampil, lalu tersimpan | 24,6°, Mendung, 95 %, AQI 120 → **Waspada** (dari aturan kualitas udara); tersimpan | Lulus |
 | T20 | Lokasi favorit | Klik ☆ pada Sleman | Lokasi tersimpan sebagai favorit, muncul tombol cepat, bintang menjadi ★ | *"Sleman, Yogyakarta disimpan ke favorit."*, tombol ★ Sleman muncul | Lulus |
 | T21 | Prakiraan 7 hari | Klik **7 hari** | Tampil 7 kolom hari: ikon, suhu maks/min, peluang hujan | 7 kolom tampil | Lulus |
 | T12 | Validasi koordinat | Latitude `100` | Pesan validasi di form | *"Latitude harus -90 s.d. 90 dan longitude -180 s.d. 180."* | Lulus |
-| T13 | Status Waspada | Lokasi `Ho Chi Minh` | Status **Waspada**, kartu rekomendasi Waspada | 34,3°, **Waspada** | Lulus |
-| T14 | Status Bahaya + koordinat manual | Alice Springs, lat `-23,698` lon `133,8807` (pakai koma) | Koma diterima; status **Bahaya** | 37°, **Bahaya** (suhu), heat index 35,2 °C Waspada, 3 kartu rekomendasi | Lulus |
+| T13 | Status sesuai aturan | Lokasi `Ho Chi Minh` | Status dihitung dari 6 aturan, kartu rekomendasi sesuai status | 28,2°, Cerah, **Waspada**; kartu saran Waspada | Lulus |
+| T14 | Koordinat manual | Alice Springs, lat `-23,698` lon `133,8807` (pakai koma) | Koma diterima; status dihitung dari 6 aturan | 28,1° (malam), semua aturan Aman → **Aman** | Lulus |
 | T22 | Lokasi favorit | Klik tombol **★ Sleman** | Cuaca Sleman langsung dicek sekali klik | Sleman, Yogyakarta, **Waspada** | Lulus |
 | T15 | Navigasi | Klik **Kembali** | Menu tampil lagi | Menu tampil | Lulus |
 | T16 | Riwayat + grafik tren | Buka **Riwayat** | Semua pengecekan user tampil, terbaru di atas; grafik suhu maks/min harian dari `weather_data` | 4 data; grafik tampil (1 hari data, dengan petunjuk bahwa tren butuh ≥ 2 hari) | Lulus |
 | T17 | Riwayat | Cari `hO cHi` | Hanya Ho Chi Minh tampil (tidak peka huruf besar/kecil) | 1 data | Lulus |
 | T18 | Riwayat | Cari `Bandung` | Pesan riwayat kosong | 0 data, pesan *"Tidak ada riwayat untuk "Bandung"..."* | Lulus |
 | T19 | Keluar | Klik **Keluar** | Aplikasi tertutup | Proses berhenti | Lulus |
+
+Ketiga status (Aman, Waspada, Bahaya) beserta batas setiap aturan juga diuji lewat unit test, karena status dari cuaca sungguhan bergantung pada kondisi saat pengujian. Pada pengujian siang hari sebelumnya, Alice Springs (37 °C) menghasilkan status **Bahaya**.
 
 Diuji manual (di luar skrip otomatis):
 
