@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Text;
 using Swasana.Data;
 using Swasana.Models;
 using Swasana.Services;
@@ -9,9 +11,9 @@ namespace Swasana
         private readonly WeatherHistoryManager history;
         private readonly User user;
         private List<SearchHistory> dataRiwayat = new List<SearchHistory>();
+        private readonly System.Windows.Forms.Timer timerTren = new System.Windows.Forms.Timer { Interval = 300 };
+        private bool gagalMuat;
         private int versiTren;
-
-        private static readonly Font FontStatus = new Font("Segoe UI Semibold", 9.75F);
 
         public FormRiwayat(DatabaseContext db, User user)
         {
@@ -19,8 +21,12 @@ namespace Swasana
             history = new WeatherHistoryManager(db);
             this.user = user;
             Animasi.FadeIn(this);
-            Animasi.Hover(btnCari, Color.FromArgb(28, 104, 124));
-            Animasi.Hover(btnKembali, Color.FromArgb(231, 241, 244));
+            Animasi.Hover(btnCari, Tema.HoverUtama);
+            Animasi.Hover(btnKembali, Tema.HoverSekunder);
+            Animasi.Hover(btnEkspor, Tema.HoverSekunder);
+            tbCari.TextChanged += tbCari_TextChanged;
+            timerTren.Tick += timerTren_Tick;
+            FormClosed += (s, e) => { timerTren.Stop(); timerTren.Dispose(); };
         }
 
         private async void FormRiwayat_Load(object sender, EventArgs e)
@@ -29,42 +35,100 @@ namespace Swasana
             {
                 dataRiwayat = await Task.Run(() => history.getHistory(user));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                lblKosong.Text = "Riwayat tidak bisa dibaca dari database: " + ex.Message;
+                gagalMuat = true;
+                lblKosong.Text = "Riwayat tidak bisa dibaca dari database. Periksa koneksi database, lalu buka ulang halaman ini.";
             }
             if (IsDisposed) return;
-            TampilkanRiwayat("");
+            TampilkanRiwayat();
+            _ = TampilkanTrenAsync(tbCari.Text.Trim());
         }
 
         private void btnCari_Click(object sender, EventArgs e)
         {
-            TampilkanRiwayat(tbCari.Text.Trim());
+            timerTren.Stop();
+            TampilkanRiwayat();
+            _ = TampilkanTrenAsync(tbCari.Text.Trim());
         }
 
-        private void TampilkanRiwayat(string kataKunci)
+        private void tbCari_TextChanged(object? sender, EventArgs e)
         {
+            TampilkanRiwayat();
+            timerTren.Stop();
+            timerTren.Start();
+        }
+
+        private void timerTren_Tick(object? sender, EventArgs e)
+        {
+            timerTren.Stop();
+            _ = TampilkanTrenAsync(tbCari.Text.Trim());
+        }
+
+        private void cbStatus_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            TampilkanRiwayat();
+        }
+
+        private IEnumerable<SearchHistory> Tersaring(string kataKunci)
+        {
+            var hasil = dataRiwayat.Where(h => h.CityName.Contains(kataKunci, StringComparison.OrdinalIgnoreCase));
+            if (cbStatus.SelectedIndex > 0)
+            {
+                var status = Enum.Parse<RiskLevel>(cbStatus.Text);
+                hasil = hasil.Where(h => h.RiskLevel == status);
+            }
+            return hasil;
+        }
+
+        private void TampilkanRiwayat()
+        {
+            var kataKunci = tbCari.Text.Trim();
+            var kolomUrut = dgvRiwayat.SortedColumn;
+            var arahUrut = dgvRiwayat.SortOrder;
+
             dgvRiwayat.Rows.Clear();
-            foreach (var h in dataRiwayat.Where(h => h.CityName.Contains(kataKunci, StringComparison.OrdinalIgnoreCase)))
+            foreach (var h in Tersaring(kataKunci))
             {
                 var baris = dgvRiwayat.Rows[dgvRiwayat.Rows.Add(Ikon.Status(h.RiskLevel), h.RiskLevel.ToString(),
                     h.SearchedAt.ToString("dd/MM/yyyy HH:mm"), h.CityName,
                     h.Temperature.ToString("0.0"), h.Rainfall.ToString("0.0"), h.WindSpeed.ToString("0.0"))];
+                baris.Tag = h;
                 baris.Cells[colStatus.Index].Style.ForeColor = h.RiskLevel == RiskLevel.Waspada
                     ? Color.FromArgb(150, 100, 0)   // kuning gelap supaya terbaca di latar putih
                     : Tema.WarnaStatus(h.RiskLevel);
-                baris.Cells[colStatus.Index].Style.Font = FontStatus;
+                baris.Cells[colStatus.Index].Style.Font = Tema.HurufTebal;
             }
+            if (kolomUrut != null && arahUrut != SortOrder.None)
+                dgvRiwayat.Sort(kolomUrut, arahUrut == SortOrder.Ascending ? ListSortDirection.Ascending : ListSortDirection.Descending);
 
             var jumlah = dgvRiwayat.Rows.Count;
             lblJumlah.Text = $"{jumlah} data";
+            btnEkspor.Enabled = jumlah > 0;
             lblKosong.Visible = jumlah == 0;
-            if (jumlah == 0 && dataRiwayat.Count > 0)
-                lblKosong.Text = $"Tidak ada riwayat untuk \"{kataKunci}\". Coba nama lokasi lain.";
-            else if (jumlah == 0 && !lblKosong.Text.StartsWith("Riwayat tidak bisa"))
-                lblKosong.Text = "Belum ada riwayat. Buka Cek cuaca, hasilnya otomatis tersimpan di sini.";
+            if (jumlah == 0 && !gagalMuat)
+            {
+                var sebab = kataKunci.Length > 0 ? $"untuk \"{kataKunci}\"" : "dengan status ini";
+                lblKosong.Text = dataRiwayat.Count > 0
+                    ? $"Tidak ada riwayat {sebab}. Ubah kata kunci atau filter status."
+                    : "Belum ada riwayat. Buka Cek cuaca, hasilnya otomatis tersimpan di sini.";
+            }
             lblKosong.BringToFront();
-            _ = TampilkanTrenAsync(kataKunci);
+        }
+
+        private void dgvRiwayat_SortCompare(object? sender, DataGridViewSortCompareEventArgs e)
+        {
+            if (dgvRiwayat.Rows[e.RowIndex1].Tag is not SearchHistory a || dgvRiwayat.Rows[e.RowIndex2].Tag is not SearchHistory b) return;
+            var kolom = e.Column;
+            e.SortResult = kolom == colStatus ? a.RiskLevel.CompareTo(b.RiskLevel)
+                : kolom == colTanggal ? a.SearchedAt.CompareTo(b.SearchedAt)
+                : kolom == colLokasi ? string.Compare(a.CityName, b.CityName, StringComparison.CurrentCultureIgnoreCase)
+                : kolom == colSuhu ? a.Temperature.CompareTo(b.Temperature)
+                : kolom == colHujan ? a.Rainfall.CompareTo(b.Rainfall)
+                : kolom == colAngin ? a.WindSpeed.CompareTo(b.WindSpeed)
+                : 0;
+            if (e.SortResult == 0) e.SortResult = b.SearchedAt.CompareTo(a.SearchedAt);
+            e.Handled = true;
         }
 
         private async Task TampilkanTrenAsync(string kataKunci)
@@ -77,10 +141,33 @@ namespace Swasana
                 if (IsDisposed || versi != versiTren) return;
                 grafikTren.Tampilkan(tren, judul);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 if (IsDisposed || versi != versiTren) return;
-                grafikTren.Tampilkan(new(), "Tren tidak bisa dibaca: " + ex.Message);
+                grafikTren.Tampilkan(new(), "Tren tidak bisa dimuat dari database.");
+            }
+        }
+
+        private void btnEkspor_Click(object sender, EventArgs e)
+        {
+            using var dialog = new SaveFileDialog
+            {
+                Filter = "CSV (*.csv)|*.csv",
+                DefaultExt = "csv",
+                FileName = $"riwayat-cuaca-{DateTime.Now:yyyyMMdd}.csv"
+            };
+            if (dialog.ShowDialog(this) != DialogResult.OK) return;
+
+            var baris = dgvRiwayat.Rows.Cast<DataGridViewRow>().Select(r => (SearchHistory)r.Tag!);
+            try
+            {
+                File.WriteAllText(dialog.FileName, EksporRiwayat.BuatCsv(baris), new UTF8Encoding(true));
+                MessageBox.Show(this, "Riwayat disimpan ke:\n" + dialog.FileName, "Ekspor CSV", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                MessageBox.Show(this, "File tidak bisa disimpan. Pastikan lokasinya bisa ditulis dan file tidak sedang terbuka di aplikasi lain.",
+                    "Ekspor CSV", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 

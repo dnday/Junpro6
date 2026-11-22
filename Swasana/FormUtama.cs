@@ -19,7 +19,7 @@ namespace Swasana
             btnRiwayat.Image = new Bitmap(Ikon.Muat("raindrop-measure"), 40, 40);
             Animasi.FadeIn(this);
             foreach (var b in new[] { btnCekCuaca, btnRiwayat, btnTentang, btnKeluar })
-                Animasi.Hover(b, Color.FromArgb(231, 241, 244));
+                Animasi.Hover(b, Tema.HoverSekunder);
         }
 
         // Menu disembunyikan selama form tujuan terbuka, lalu tampil lagi saat ditutup
