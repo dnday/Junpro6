@@ -15,6 +15,7 @@ Anggota 2: Raka Bagus Samudra - 24/543213/TK/60349
 - Kartu saran tindakan dari tabel `recommendations`, dengan ikon per kategori
 - Riwayat pengecekan tersimpan di PostgreSQL, bisa dicari per lokasi, disaring per status, diurutkan per kolom, dan diekspor ke CSV, dengan grafik tren suhu harian dari `weather_data`
 - Database & tabel dibuat otomatis dari aplikasi
+- Database bisa PostgreSQL lokal, atau database online (Supabase): URI koneksi bisa ditempel langsung, dan exe rilis bisa membawa database online bawaan dengan akun berhak terbatas
 - Tampilan bergaya aplikasi cuaca: ikon Meteocons, latar langit sesuai cuaca, adegan animasi (hujan, panas, badai, angin, malam), kartu risiko berputar 3D, transisi FluentTransitions. Animasi mati otomatis kalau efek animasi Windows dimatikan
 
 Panduan instalasi, konfigurasi database, dan cara pakai: **[PANDUAN.md](PANDUAN.md)**.
