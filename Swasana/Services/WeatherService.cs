@@ -59,9 +59,31 @@ public class WeatherService
         var url = string.Format(CultureInfo.InvariantCulture,
             "https://api.open-meteo.com/v1/forecast?latitude={0}&longitude={1}" +
             "&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,wind_speed_10m,weather_code,is_day,uv_index" +
-            "&hourly=temperature_2m,precipitation_probability,weather_code,is_day&forecast_hours=8&timezone=auto",
+            "&hourly=temperature_2m,precipitation_probability,weather_code,is_day&forecast_hours=8" +
+            "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=7&timezone=auto",
             latitude, longitude);
-        return ParseCurrent(await http.GetStringAsync(url).ConfigureAwait(false));
+        var urlUdara = string.Format(CultureInfo.InvariantCulture,
+            "https://air-quality-api.open-meteo.com/v1/air-quality?latitude={0}&longitude={1}&current=us_aqi,pm2_5",
+            latitude, longitude);
+
+        // Cuaca dan kualitas udara diambil bersamaan; kualitas udara boleh gagal tanpa menggagalkan cuaca
+        var tugasUdara = http.GetStringAsync(urlUdara);
+        var data = ParseCurrent(await http.GetStringAsync(url).ConfigureAwait(false));
+        try
+        {
+            (data.Aqi, data.Pm25) = ParseAirQuality(await tugasUdara.ConfigureAwait(false));
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException) { }
+        return data;
+    }
+
+    public static (int? Aqi, double? Pm25) ParseAirQuality(string json)
+    {
+        using var doc = JsonDocument.Parse(json);
+        if (!doc.RootElement.TryGetProperty("current", out var c)) return (null, null);
+        int? aqi = c.TryGetProperty("us_aqi", out var a) && a.ValueKind == JsonValueKind.Number ? a.GetInt32() : null;
+        double? pm = c.TryGetProperty("pm2_5", out var p) && p.ValueKind == JsonValueKind.Number ? p.GetDouble() : null;
+        return (aqi, pm);
     }
 
     // public static supaya bisa diuji tanpa internet (lihat Swasana.Tests)
@@ -107,6 +129,21 @@ public class WeatherService
                         ? hourly.GetProperty("precipitation_probability")[i].GetInt32() : 0,
                     hourly.GetProperty("weather_code")[i].GetInt32(),
                     hourly.GetProperty("is_day")[i].GetInt32() == 1));
+            }
+        }
+
+        if (doc.RootElement.TryGetProperty("daily", out var daily))
+        {
+            var hari = daily.GetProperty("time");
+            for (int i = 0; i < hari.GetArrayLength(); i++)
+            {
+                var peluang = daily.GetProperty("precipitation_probability_max")[i];
+                data.Daily.Add(new PrakiraanHari(
+                    DateTime.Parse(hari[i].GetString()!, CultureInfo.InvariantCulture),
+                    daily.GetProperty("temperature_2m_max")[i].GetDouble(),
+                    daily.GetProperty("temperature_2m_min")[i].GetDouble(),
+                    peluang.ValueKind == JsonValueKind.Number ? peluang.GetInt32() : 0,
+                    daily.GetProperty("weather_code")[i].GetInt32()));
             }
         }
         return data;

@@ -60,6 +60,20 @@ namespace Swasana
             else if (jumlah == 0 && !lblKosong.Text.StartsWith("Riwayat tidak bisa"))
                 lblKosong.Text = "Belum ada riwayat. Buka Cek cuaca, hasilnya otomatis tersimpan di sini.";
             lblKosong.BringToFront();
+            TampilkanTren(kataKunci);
+        }
+
+        private void TampilkanTren(string kataKunci)
+        {
+            try
+            {
+                var judul = kataKunci.Length == 0 ? "Tren suhu harian, semua lokasi" : $"Tren suhu harian, lokasi \"{kataKunci}\"";
+                grafikTren.Tampilkan(history.getTrenHarian(user, kataKunci), judul);
+            }
+            catch (Exception ex)
+            {
+                grafikTren.Tampilkan(new(), "Tren tidak bisa dibaca: " + ex.Message);
+            }
         }
 
         private void btnKembali_Click(object sender, EventArgs e)

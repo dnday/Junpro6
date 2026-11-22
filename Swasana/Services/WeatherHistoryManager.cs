@@ -48,6 +48,32 @@ public class WeatherHistoryManager
             new NpgsqlParameter("note", (object?)note ?? DBNull.Value));
     }
 
+    // Suhu maksimum & minimum per hari dari tabel weather_data (14 hari terakhir yang ada datanya),
+    // bisa disaring dengan potongan nama lokasi
+    public List<(DateTime Tanggal, double Maks, double Min)> getTrenHarian(User user, string kataKunci)
+    {
+        var ds = context.executeQuery(
+            @"SELECT tanggal, maks, min FROM (
+                  SELECT w.recorded_at::date AS tanggal, MAX(w.temperature) AS maks, MIN(w.temperature) AS min
+                  FROM weather_data w
+                  JOIN locations l ON l.location_id = w.location_id
+                  WHERE l.user_id = @user AND l.city_name ILIKE @kata AND w.temperature IS NOT NULL
+                  GROUP BY w.recorded_at::date
+                  ORDER BY tanggal DESC
+                  LIMIT 14) t
+              ORDER BY tanggal",
+            new NpgsqlParameter("user", user.UserId),
+            new NpgsqlParameter("kata", "%" + EscapeLike(kataKunci) + "%"));
+
+        return ds.Tables[0].Rows.Cast<DataRow>()
+            .Select(r => (Convert.ToDateTime(r["tanggal"]), Convert.ToDouble(r["maks"]), Convert.ToDouble(r["min"])))
+            .ToList();
+    }
+
+    // Karakter % dan _ dari input pengguna dibaca apa adanya, bukan sebagai wildcard ILIKE
+    private static string EscapeLike(string teks) =>
+        teks.Replace(@"\", @"\\").Replace("%", @"\%").Replace("_", @"\_");
+
     public List<SearchHistory> getHistory(User user)
     {
         var ds = context.executeQuery(

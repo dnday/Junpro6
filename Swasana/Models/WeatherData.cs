@@ -20,6 +20,9 @@ public class WeatherData
     public double ApparentTemperature { get; set; }   // °C, suhu yang terasa
     public double UvIndex { get; set; }
     public List<PrakiraanJam> Hourly { get; set; } = new List<PrakiraanJam>();
+    public List<PrakiraanHari> Daily { get; set; } = new List<PrakiraanHari>();
+    public int? Aqi { get; set; }             // US AQI dari Open-Meteo Air Quality, null kalau tidak tersedia
+    public double? Pm25 { get; set; }         // µg/m³
 
     // Ambil cuaca terkini lokasi dari Open-Meteo Web API
     public static async Task<WeatherData> fetchFromAPI(Location location)

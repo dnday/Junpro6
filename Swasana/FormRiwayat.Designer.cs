@@ -32,6 +32,7 @@ namespace Swasana
             colSuhu = new DataGridViewTextBoxColumn();
             colHujan = new DataGridViewTextBoxColumn();
             colAngin = new DataGridViewTextBoxColumn();
+            grafikTren = new GrafikTren();
             lblKosong = new Label();
             lblJumlah = new Label();
             btnKembali = new Button();
@@ -127,14 +128,14 @@ namespace Swasana
             dgvRiwayat.DefaultCellStyle = gayaBaris;
             dgvRiwayat.EnableHeadersVisualStyles = false;
             dgvRiwayat.GridColor = Color.FromArgb(227, 235, 239);
-            dgvRiwayat.Location = new Point(24, 140);
+            dgvRiwayat.Location = new Point(24, 342);
             dgvRiwayat.MultiSelect = false;
             dgvRiwayat.Name = "dgvRiwayat";
             dgvRiwayat.ReadOnly = true;
             dgvRiwayat.RowHeadersVisible = false;
             dgvRiwayat.RowTemplate.Height = 34;
             dgvRiwayat.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvRiwayat.Size = new Size(672, 290);
+            dgvRiwayat.Size = new Size(672, 238);
             dgvRiwayat.TabIndex = 4;
             //
             // colIkon
@@ -188,13 +189,21 @@ namespace Swasana
             colAngin.Name = "colAngin";
             colAngin.ReadOnly = true;
             //
+            // grafikTren
+            //
+            grafikTren.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            grafikTren.Location = new Point(24, 140);
+            grafikTren.Name = "grafikTren";
+            grafikTren.Size = new Size(672, 190);
+            grafikTren.TabIndex = 8;
+            //
             // lblKosong
             //
             lblKosong.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             lblKosong.BackColor = Color.White;
             lblKosong.Font = new Font("Segoe UI", 9.75F);
             lblKosong.ForeColor = Color.FromArgb(94, 110, 122);
-            lblKosong.Location = new Point(25, 190);
+            lblKosong.Location = new Point(25, 392);
             lblKosong.Name = "lblKosong";
             lblKosong.Size = new Size(670, 60);
             lblKosong.TabIndex = 5;
@@ -208,7 +217,7 @@ namespace Swasana
             lblJumlah.AutoSize = true;
             lblJumlah.Font = new Font("Segoe UI", 9F);
             lblJumlah.ForeColor = Color.FromArgb(94, 110, 122);
-            lblJumlah.Location = new Point(24, 451);
+            lblJumlah.Location = new Point(24, 601);
             lblJumlah.Name = "lblJumlah";
             lblJumlah.Size = new Size(41, 15);
             lblJumlah.TabIndex = 6;
@@ -223,7 +232,7 @@ namespace Swasana
             btnKembali.FlatStyle = FlatStyle.Flat;
             btnKembali.Font = new Font("Segoe UI", 9.75F);
             btnKembali.ForeColor = Color.FromArgb(15, 76, 92);
-            btnKembali.Location = new Point(596, 442);
+            btnKembali.Location = new Point(596, 592);
             btnKembali.Name = "btnKembali";
             btnKembali.Size = new Size(100, 32);
             btnKembali.TabIndex = 7;
@@ -237,16 +246,17 @@ namespace Swasana
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(243, 246, 248);
-            ClientSize = new Size(720, 490);
+            ClientSize = new Size(720, 640);
             Controls.Add(btnKembali);
             Controls.Add(lblJumlah);
             Controls.Add(lblKosong);
+            Controls.Add(grafikTren);
             Controls.Add(dgvRiwayat);
             Controls.Add(btnCari);
             Controls.Add(tbCari);
             Controls.Add(lblCari);
             Controls.Add(pnlHeader);
-            MinimumSize = new Size(600, 400);
+            MinimumSize = new Size(600, 560);
             Name = "FormRiwayat";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "SWASANA - Riwayat cuaca";
@@ -273,6 +283,7 @@ namespace Swasana
         private DataGridViewTextBoxColumn colSuhu;
         private DataGridViewTextBoxColumn colHujan;
         private DataGridViewTextBoxColumn colAngin;
+        private GrafikTren grafikTren;
         private Label lblKosong;
         private Label lblJumlah;
         private Button btnKembali;
