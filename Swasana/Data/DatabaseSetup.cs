@@ -16,7 +16,17 @@ public static class DatabaseSetup
     {
         var fromEnv = Environment.GetEnvironmentVariable("SWASANA_DB");
         if (!string.IsNullOrWhiteSpace(fromEnv)) return fromEnv;
-        return File.Exists(ConfigPath) ? File.ReadAllText(ConfigPath).Trim() : null;
+        if (File.Exists(ConfigPath)) return File.ReadAllText(ConfigPath).Trim();
+        return KoneksiBawaan;   // tanpa pengaturan sendiri -> database online bawaan (kalau ditanam saat build)
+    }
+
+    // Koneksi database online bawaan yang ditanam di exe (null kalau exe dibuat tanpa file koneksi-bawaan.txt)
+    public static string? KoneksiBawaan { get; } = BacaResource("koneksi-bawaan.txt")?.Trim();
+
+    // Kembali ke database bawaan: hapus pengaturan koneksi milik pengguna
+    public static void HapusPengaturan()
+    {
+        if (File.Exists(ConfigPath)) File.Delete(ConfigPath);
     }
 
     public static void SaveConnectionString(string connectionString)
@@ -84,10 +94,13 @@ public static class DatabaseSetup
         schema.ExecuteNonQuery();
     }
 
-    private static string ReadSchema()
+    private static string ReadSchema() =>
+        BacaResource("swasana_schema.sql") ?? throw new InvalidOperationException("swasana_schema.sql tidak ditemukan di dalam aplikasi.");
+
+    private static string? BacaResource(string nama)
     {
-        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("swasana_schema.sql")
-            ?? throw new InvalidOperationException("swasana_schema.sql tidak ditemukan di dalam aplikasi.");
+        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(nama);
+        if (stream == null) return null;
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     }

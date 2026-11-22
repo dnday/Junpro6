@@ -20,6 +20,9 @@
   <ItemGroup>
     <EmbeddedResource Include="..\database\swasana_schema.sql" LogicalName="swasana_schema.sql" />
     <EmbeddedResource Include="Ikon\*.png" LogicalName="Ikon.%(Filename).png" />
+    <!-- Koneksi database bawaan (Supabase). File ini di-ignore git karena berisi password; kalau tidak ada,
+         aplikasi meminta pengaturan koneksi seperti biasa. -->
+    <EmbeddedResource Include="koneksi-bawaan.txt" LogicalName="koneksi-bawaan.txt" Condition="Exists('koneksi-bawaan.txt')" />
   </ItemGroup>
 
 </Project>

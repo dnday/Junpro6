@@ -5,3 +5,6 @@ obj/
 
 # Hasil dotnet publish
 publish/
+
+# Koneksi database bawaan berisi password, jangan di-commit
+Swasana/koneksi-bawaan.txt

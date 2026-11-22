@@ -19,7 +19,9 @@ static class Program
         }
 
         // Perbarui skema database lama (misalnya kolom favorit). Kalau gagal, form login yang memberi tahu.
-        try { DatabaseSetup.EnsureSchema(connectionString); } catch { }
+        // Database bawaan dilewati: akun aplikasinya memang tidak boleh mengubah tabel.
+        if (connectionString != DatabaseSetup.KoneksiBawaan)
+            try { DatabaseSetup.EnsureSchema(connectionString); } catch { }
 
         var db = new DatabaseContext(connectionString);
         using var login = new FormLogin(db);

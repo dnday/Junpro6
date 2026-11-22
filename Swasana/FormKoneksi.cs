@@ -25,6 +25,23 @@ namespace Swasana
                 tbUsername.Text = b.Username;
             }
             tbHost.TextChanged += tbHost_TextChanged;
+
+            // Exe yang membawa database bawaan: sediakan jalan pintas untuk kembali memakainya
+            if (DatabaseSetup.KoneksiBawaan != null)
+            {
+                var bawaan = new LinkLabel
+                {
+                    Text = "Pakai database online bawaan", AutoSize = true, Font = Tema.HurufBesar,
+                    LinkColor = Tema.Langit, ActiveLinkColor = Tema.Langit, Location = new Point(22, btnSimpan.Top + 8)
+                };
+                bawaan.LinkClicked += (s, e) =>
+                {
+                    DatabaseSetup.HapusPengaturan();
+                    ConnectionString = DatabaseSetup.KoneksiBawaan;
+                    DialogResult = DialogResult.OK;
+                };
+                Controls.Add(bawaan);
+            }
         }
 
         // URI koneksi (mis. dari Supabase) yang ditempel ke kolom Host langsung dipecah ke tiap kolom
