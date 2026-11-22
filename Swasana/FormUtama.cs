@@ -20,14 +20,13 @@ namespace Swasana
             Animasi.FadeIn(this);
             foreach (var b in new[] { btnCekCuaca, btnRiwayat, btnTentang, btnKeluar })
                 Animasi.Hover(b, Tema.HoverSekunder);
+            FormClosed += (s, e) => { btnCekCuaca.Image?.Dispose(); btnRiwayat.Image?.Dispose(); };
         }
 
-        // Menu disembunyikan selama form tujuan terbuka, lalu tampil lagi saat ditutup
         private void BukaForm(Form form)
         {
-            Hide();
+            form.ShowInTaskbar = false;
             using (form) form.ShowDialog(this);
-            Show();
         }
 
         private void btnCekCuaca_Click(object sender, EventArgs e)

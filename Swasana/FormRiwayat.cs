@@ -95,7 +95,7 @@ namespace Swasana
                     h.Temperature.ToString("0.0"), h.Rainfall.ToString("0.0"), h.WindSpeed.ToString("0.0"))];
                 baris.Tag = h;
                 baris.Cells[colStatus.Index].Style.ForeColor = h.RiskLevel == RiskLevel.Waspada
-                    ? Color.FromArgb(150, 100, 0)   // kuning gelap supaya terbaca di latar putih
+                    ? Tema.WaspadaGelap
                     : Tema.WarnaStatus(h.RiskLevel);
                 baris.Cells[colStatus.Index].Style.Font = Tema.HurufTebal;
             }

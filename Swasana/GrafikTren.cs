@@ -37,7 +37,8 @@ namespace Swasana
 
         private (RectangleF Area, double Atas, double Bawah) Geometri()
         {
-            var area = new RectangleF(44, 36, Math.Max(1, Width - 64), Math.Max(1, Height - 64));
+            var puncak = data.Count == 1 ? 56 : 36;
+            var area = new RectangleF(44, puncak, Math.Max(1, Width - 64), Math.Max(1, Height - puncak - 28));
             var atas = Math.Ceiling(data.Max(d => d.Maks) + 1);
             var bawah = Math.Floor(data.Min(d => d.Min) - 1);
             if (atas - bawah < 4) { atas += 2; bawah -= 2; }
@@ -121,7 +122,7 @@ namespace Swasana
 
             if (data.Count == 1)
                 TextRenderer.DrawText(g, "Tren terlihat setelah ada data dari 2 hari atau lebih.", fKecil,
-                    new Point((int)area.Left, (int)area.Top), Tema.Redup);
+                    new Point(10, 28), Tema.Redup);
         }
 
         private static readonly Color WarnaMaks = Color.FromArgb(198, 40, 40);
