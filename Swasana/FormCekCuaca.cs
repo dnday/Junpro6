@@ -19,6 +19,18 @@ namespace Swasana
         private WeatherData? dataTerakhir;
         private bool tampilHarian;
         private bool isiOtomatis;
+        private bool adeganBerjalan;
+        private bool jendelaAktif = true;
+        private readonly ToolTip tip = new ToolTip();
+
+        private static readonly Font FontKecil = new Font("Segoe UI", 8.25F);
+        private static readonly Font FontSedang = new Font("Segoe UI", 9F);
+        private static readonly Font FontBesar = new Font("Segoe UI", 9.75F);
+        private static readonly Font FontKategori = new Font("Segoe UI Semibold", 8.25F);
+        private static readonly Font FontSaran = new Font("Segoe UI Semibold", 9.75F);
+        private static readonly Font FontSuhuHarian = new Font("Bahnschrift SemiBold", 9F);
+        private static readonly Font FontSuhuJam = new Font("Bahnschrift SemiBold", 10F);
+        private static readonly Font FontBintang = new Font("Segoe UI Symbol", 12F);
 
         // Warna langit di latar hero, mengikuti kondisi cuaca (seperti aplikasi cuaca pada umumnya).
         // Public supaya bisa dianimasikan FluentTransitions.
@@ -36,7 +48,7 @@ namespace Swasana
         private readonly GarisLoading loading;
         private readonly int suhuTop;
         private readonly AdeganCuaca adegan = new AdeganCuaca();
-        private readonly System.Windows.Forms.Timer timerAdegan = new System.Windows.Forms.Timer { Interval = 16 };   // ~60 fps
+        private readonly System.Windows.Forms.Timer timerAdegan = new System.Windows.Forms.Timer { Interval = 33 };   // ~30 fps
         private readonly System.Diagnostics.Stopwatch jamAdegan = System.Diagnostics.Stopwatch.StartNew();
         private double detikTerakhir;
 
@@ -59,12 +71,12 @@ namespace Swasana
             picHujan.Image = Ikon.Muat("raindrop");
             picUv.Image = Ikon.Muat("uv-index");
             picUdara.Image = Ikon.Muat("smoke-particles");
-            btnFavorit.Font = new Font("Segoe UI Symbol", 12F);
-            foreach (var b in new[] { btnPerJam, btnHarian }) b.Font = new Font("Segoe UI", 8.25F);
-            new ToolTip().SetToolTip(btnFavorit, "Simpan atau hapus lokasi ini dari favorit");
-            MuatFavorit();
+            btnFavorit.Font = FontBintang;
+            foreach (var b in new[] { btnPerJam, btnHarian }) b.Font = FontKecil;
+            tip.SetToolTip(btnFavorit, "Simpan atau hapus lokasi ini dari favorit");
             picStatus.Visible = false;
             timerKartu.Tick += timerKartu_Tick;
+            Shown += async (s, e) => await MuatFavoritAsync();
             TampilkanKosong();
 
             loading = new GarisLoading(pnlHero, Color.White);
@@ -78,7 +90,10 @@ namespace Swasana
                 detikTerakhir = sekarang;
                 pnlHero.Invalidate();
             };
-            FormClosed += (s, e) => { timerAdegan.Stop(); timerKartu.Stop(); timerSaran.Stop(); batalSaran?.Cancel(); };
+            FormClosed += (s, e) => { timerAdegan.Stop(); timerKartu.Stop(); timerSaran.Stop(); batalSaran?.Cancel(); batalSaran?.Dispose(); tip.Dispose(); };
+            Activated += (s, e) => { jendelaAktif = true; AturTimerAdegan(); };
+            Deactivate += (s, e) => { jendelaAktif = false; AturTimerAdegan(); };
+            SizeChanged += (s, e) => AturTimerAdegan();
             suhuTop = lblSuhu.Top;
             Animasi.FadeIn(this);
             Animasi.Hover(btnCek, Color.FromArgb(28, 104, 124));
@@ -129,7 +144,7 @@ namespace Swasana
                 data.RiskLevel = riskEvaluator.evaluateRisk(data);
                 TampilkanHasil(lokasi.Name, data);
 
-                history.saveHistory(user, lokasi, data);
+                await Task.Run(() => history.saveHistory(user, lokasi, data));
                 return true;
             }
         }
@@ -188,6 +203,7 @@ namespace Swasana
         {
             timerSaran.Stop();
             batalSaran?.Cancel();
+            batalSaran?.Dispose();
             batalSaran = new CancellationTokenSource();
             var kata = tbLokasi.Text;
             try
@@ -256,10 +272,8 @@ namespace Swasana
             var dipilih = (e.State & DrawItemState.Selected) != 0;
             using (var latar = new SolidBrush(dipilih ? Color.FromArgb(214, 232, 238) : Color.White))
                 e.Graphics.FillRectangle(latar, e.Bounds);
-            using var tebal = new Font("Segoe UI Semibold", 9.75F);
-            using var kecil = new Font("Segoe UI", 8.25F);
-            TextRenderer.DrawText(e.Graphics, s.Nama, tebal, new Point(e.Bounds.X + 8, e.Bounds.Y + 2), Tema.Tinta);
-            TextRenderer.DrawText(e.Graphics, s.Keterangan, kecil, new Point(e.Bounds.X + 8, e.Bounds.Y + 19), Tema.Redup);
+            TextRenderer.DrawText(e.Graphics, s.Nama, FontSaran, new Point(e.Bounds.X + 8, e.Bounds.Y + 2), Tema.Tinta);
+            TextRenderer.DrawText(e.Graphics, s.Keterangan, FontKecil, new Point(e.Bounds.X + 8, e.Bounds.Y + 19), Tema.Redup);
         }
 
         // Terima koma maupun titik sebagai pemisah desimal
@@ -274,7 +288,7 @@ namespace Swasana
             {
                 Text = "Saran tindakan muncul di sini setelah cuaca dicek.",
                 ForeColor = Tema.Redup,
-                Font = new Font("Segoe UI", 9.75F),
+                Font = FontBesar,
                 AutoSize = false,
                 Size = new Size(296, 40)
             };
@@ -283,19 +297,20 @@ namespace Swasana
         }
 
         // ===== Lokasi favorit =====
-        private void MuatFavorit()
+        private async Task MuatFavoritAsync()
         {
-            try { favorit = lokasiRepo.GetFavorites(user.UserId); }
+            try { favorit = await Task.Run(() => lokasiRepo.GetFavorites(user.UserId)); }
             catch (Exception) { favorit = new List<Location>(); }   // database lama tanpa kolom favorit: fitur diam saja
+            if (IsDisposed) return;
 
             flowFavorit.SuspendLayout();
-            flowFavorit.Controls.Clear();
+            Kosongkan(flowFavorit);
             if (favorit.Count == 0)
             {
                 flowFavorit.Controls.Add(new Label
                 {
                     Text = "Tekan ☆ untuk menyimpan lokasi favorit, lalu cek cuacanya sekali klik dari sini.",
-                    ForeColor = Tema.Redup, Font = new Font("Segoe UI", 9F), AutoSize = true, Margin = new Padding(0, 7, 0, 0)
+                    ForeColor = Tema.Redup, Font = FontSedang, AutoSize = true, Margin = new Padding(0, 7, 0, 0)
                 });
             }
             foreach (var lok in favorit)
@@ -304,7 +319,7 @@ namespace Swasana
                 {
                     Text = "★ " + lok.Name.Split(',')[0], AutoSize = true, Height = 28, Tag = lok,
                     FlatStyle = FlatStyle.Flat, BackColor = Color.FromArgb(231, 241, 244), ForeColor = Tema.Langit,
-                    Font = new Font("Segoe UI", 9F), Cursor = Cursors.Hand, Margin = new Padding(0, 0, 6, 0)
+                    Font = FontSedang, Cursor = Cursors.Hand, Margin = new Padding(0, 0, 6, 0)
                 };
                 chip.FlatAppearance.BorderSize = 0;
                 chip.Click += (s, e) =>
@@ -314,9 +329,10 @@ namespace Swasana
                     btnCek.PerformClick();
                 };
                 var menu = new ContextMenuStrip();
-                menu.Items.Add("Hapus dari favorit", null, (s, e) => UbahFavorit(lok, false));
+                menu.Items.Add("Hapus dari favorit", null, async (s, e) => await UbahFavoritAsync(lok, false));
                 chip.ContextMenuStrip = menu;
-                new ToolTip().SetToolTip(chip, lok.Name + "\nKlik kanan untuk menghapus dari favorit");
+                chip.Disposed += (s, e) => menu.Dispose();
+                tip.SetToolTip(chip, lok.Name + "\nKlik kanan untuk menghapus dari favorit");
                 flowFavorit.Controls.Add(chip);
             }
             flowFavorit.ResumeLayout();
@@ -331,7 +347,7 @@ namespace Swasana
             btnFavorit.Text = LokasiIniFavorit() ? "★" : "☆";
         }
 
-        private void btnFavorit_Click(object sender, EventArgs e)
+        private async void btnFavorit_Click(object sender, EventArgs e)
         {
             if (tbLokasi.Text.Trim().Length == 0 || !TryParseKoordinat(tbLatitude.Text, out var lat) || !TryParseKoordinat(tbLongitude.Text, out var lon)
                 || lat < -90 || lat > 90 || lon < -180 || lon > 180)
@@ -341,20 +357,26 @@ namespace Swasana
             }
             var lokasi = new Location { Name = tbLokasi.Text.Trim() };
             lokasi.setLocation(lat, lon);
-            UbahFavorit(lokasi, !LokasiIniFavorit());
+            await UbahFavoritAsync(lokasi, !LokasiIniFavorit());
         }
 
-        private void UbahFavorit(Location lokasi, bool jadikanFavorit)
+        private async Task UbahFavoritAsync(Location lokasi, bool jadikanFavorit)
         {
+            btnFavorit.Enabled = false;
             try
             {
-                lokasiRepo.SetFavorite(user.UserId, lokasi, jadikanFavorit);
+                await Task.Run(() => lokasiRepo.SetFavorite(user.UserId, lokasi, jadikanFavorit));
+                if (IsDisposed) return;
                 Pesan(jadikanFavorit ? $"{lokasi.Name} disimpan ke favorit." : $"{lokasi.Name} dihapus dari favorit.", error: false);
-                MuatFavorit();
+                await MuatFavoritAsync();
             }
             catch (Exception ex)
             {
-                Pesan("Favorit tidak bisa disimpan: " + ex.Message);
+                if (!IsDisposed) Pesan("Favorit tidak bisa disimpan: " + ex.Message);
+            }
+            finally
+            {
+                if (!IsDisposed) btnFavorit.Enabled = true;
             }
         }
 
@@ -366,7 +388,9 @@ namespace Swasana
             Animasi.Ubah(this, nameof(LangitBawah), bawah, 600);
             picCuaca.Image = Ikon.Muat(Ikon.NamaCuaca(data.WeatherCode, data.IsDay));
             adegan.Atur(data.WeatherCode, data.IsDay, data.Temperature, data.WindSpeed, pnlHero.Size);
-            if (Animasi.Aktif) timerAdegan.Start(); else pnlHero.Invalidate();
+            adeganBerjalan = Animasi.Aktif;
+            AturTimerAdegan();
+            pnlHero.Invalidate();
             lblLokasiHasil.Text = namaLokasi;
             // Suhu berjalan ke nilai baru sambil naik sedikit dari bawah
             lblSuhu.Top = suhuTop + (Animasi.Aktif ? 14 : 0);
@@ -436,11 +460,11 @@ namespace Swasana
             }
             if (dataTerakhir == null)
             {
-                flowJam.Controls.Clear();
+                Kosongkan(flowJam);
                 flowJam.Controls.Add(new Label
                 {
                     Text = tampilHarian ? "Prakiraan 7 hari muncul setelah cuaca dicek." : "Prakiraan 8 jam ke depan muncul setelah cuaca dicek.",
-                    ForeColor = Tema.Redup, Font = new Font("Segoe UI", 9.75F), AutoSize = false, Size = new Size(470, 40)
+                    ForeColor = Tema.Redup, Font = FontBesar, AutoSize = false, Size = new Size(470, 40)
                 });
                 return;
             }
@@ -451,13 +475,13 @@ namespace Swasana
         {
             var id = new CultureInfo("id-ID");
             flowJam.SuspendLayout();
-            flowJam.Controls.Clear();
+            Kosongkan(flowJam);
             foreach (var (h, i) in hari.Take(7).Select((h, i) => (h, i)))
             {
                 var item = new Panel { Size = new Size(67, 78), Margin = new Padding(1, 0, 1, 0) };
                 item.Controls.Add(new Label
                 {
-                    Text = i == 0 ? "Hari ini" : h.Tanggal.ToString("ddd d", id), Font = new Font("Segoe UI", 8.25F), ForeColor = Tema.Redup,
+                    Text = i == 0 ? "Hari ini" : h.Tanggal.ToString("ddd d", id), Font = FontKecil, ForeColor = Tema.Redup,
                     AutoSize = false, Size = new Size(67, 15), Location = new Point(0, 0), TextAlign = ContentAlignment.MiddleCenter
                 });
                 item.Controls.Add(new PictureBox
@@ -467,12 +491,12 @@ namespace Swasana
                 });
                 item.Controls.Add(new Label
                 {
-                    Text = $"{h.SuhuMaks:0}° / {h.SuhuMin:0}°", Font = new Font("Bahnschrift SemiBold", 9F), ForeColor = Tema.Tinta,
+                    Text = $"{h.SuhuMaks:0}° / {h.SuhuMin:0}°", Font = FontSuhuHarian, ForeColor = Tema.Tinta,
                     AutoSize = false, Size = new Size(67, 16), Location = new Point(0, 48), TextAlign = ContentAlignment.MiddleCenter
                 });
                 item.Controls.Add(new Label
                 {
-                    Text = $"{h.PeluangHujan}%", Font = new Font("Segoe UI", 8.25F), ForeColor = Color.FromArgb(30, 100, 200),
+                    Text = $"{h.PeluangHujan}%", Font = FontKecil, ForeColor = Color.FromArgb(30, 100, 200),
                     AutoSize = false, Size = new Size(67, 14), Location = new Point(0, 64), TextAlign = ContentAlignment.MiddleCenter
                 });
                 flowJam.Controls.Add(item);
@@ -483,13 +507,13 @@ namespace Swasana
         private void TampilkanPerJam(List<PrakiraanJam> jam)
         {
             flowJam.SuspendLayout();
-            flowJam.Controls.Clear();
+            Kosongkan(flowJam);
             foreach (var j in jam.Take(8))
             {
                 var item = new Panel { Size = new Size(58, 78), Margin = new Padding(1, 0, 1, 0) };
                 item.Controls.Add(new Label
                 {
-                    Text = j.Waktu.ToString("HH:mm"), Font = new Font("Segoe UI", 8.25F), ForeColor = Tema.Redup,
+                    Text = j.Waktu.ToString("HH:mm"), Font = FontKecil, ForeColor = Tema.Redup,
                     AutoSize = false, Size = new Size(58, 15), Location = new Point(0, 0), TextAlign = ContentAlignment.MiddleCenter
                 });
                 item.Controls.Add(new PictureBox
@@ -499,12 +523,12 @@ namespace Swasana
                 });
                 item.Controls.Add(new Label
                 {
-                    Text = $"{j.Suhu:0}°", Font = new Font("Bahnschrift SemiBold", 10F), ForeColor = Tema.Tinta,
+                    Text = $"{j.Suhu:0}°", Font = FontSuhuJam, ForeColor = Tema.Tinta,
                     AutoSize = false, Size = new Size(58, 16), Location = new Point(0, 48), TextAlign = ContentAlignment.MiddleCenter
                 });
                 item.Controls.Add(new Label
                 {
-                    Text = $"{j.PeluangHujan}%", Font = new Font("Segoe UI", 8.25F), ForeColor = Color.FromArgb(30, 100, 200),
+                    Text = $"{j.PeluangHujan}%", Font = FontKecil, ForeColor = Color.FromArgb(30, 100, 200),
                     AutoSize = false, Size = new Size(58, 14), Location = new Point(0, 64), TextAlign = ContentAlignment.MiddleCenter
                 });
                 flowJam.Controls.Add(item);
@@ -516,7 +540,7 @@ namespace Swasana
         {
             timerKartu.Stop();
             flowRekomendasi.SuspendLayout();
-            flowRekomendasi.Controls.Clear();
+            Kosongkan(flowRekomendasi);
             kartu.Clear();
 
             var warna = Tema.WarnaStatus(level);
@@ -539,7 +563,7 @@ namespace Swasana
         {
             var isi = new Label
             {
-                Text = teks, Font = new Font("Segoe UI", 9.75F), ForeColor = Tema.Tinta,
+                Text = teks, Font = FontBesar, ForeColor = Tema.Tinta,
                 AutoSize = false, Location = new Point(58, 24), MaximumSize = new Size(226, 0)
             };
             var ukuran = TextRenderer.MeasureText(teks, isi.Font, new Size(226, 0), TextFormatFlags.WordBreak);
@@ -560,7 +584,7 @@ namespace Swasana
             });
             k.Controls.Add(new Label
             {
-                Text = char.ToUpper(kategori[0]) + kategori[1..], Font = new Font("Segoe UI Semibold", 8.25F),
+                Text = char.ToUpper(kategori[0]) + kategori[1..], Font = FontKategori,
                 ForeColor = Tema.Redup, AutoSize = true, Location = new Point(57, 6)
             });
             k.Controls.Add(isi);
@@ -574,6 +598,19 @@ namespace Swasana
             "perlindungan diri" => "umbrella",
             _ => "not-available"
         };
+
+        private static void Kosongkan(Control induk)
+        {
+            while (induk.Controls.Count > 0) induk.Controls[0].Dispose();
+        }
+
+        private void AturTimerAdegan()
+        {
+            var perlu = adeganBerjalan && jendelaAktif && WindowState != FormWindowState.Minimized;
+            if (perlu == timerAdegan.Enabled) return;
+            if (perlu) { detikTerakhir = jamAdegan.Elapsed.TotalSeconds; timerAdegan.Start(); }
+            else timerAdegan.Stop();
+        }
 
         private void timerKartu_Tick(object? sender, EventArgs e)
         {

@@ -9,6 +9,9 @@ namespace Swasana
         private readonly WeatherHistoryManager history;
         private readonly User user;
         private List<SearchHistory> dataRiwayat = new List<SearchHistory>();
+        private int versiTren;
+
+        private static readonly Font FontStatus = new Font("Segoe UI Semibold", 9.75F);
 
         public FormRiwayat(DatabaseContext db, User user)
         {
@@ -20,16 +23,17 @@ namespace Swasana
             Animasi.Hover(btnKembali, Color.FromArgb(231, 241, 244));
         }
 
-        private void FormRiwayat_Load(object sender, EventArgs e)
+        private async void FormRiwayat_Load(object sender, EventArgs e)
         {
             try
             {
-                dataRiwayat = history.getHistory(user);
+                dataRiwayat = await Task.Run(() => history.getHistory(user));
             }
             catch (Exception ex)
             {
                 lblKosong.Text = "Riwayat tidak bisa dibaca dari database: " + ex.Message;
             }
+            if (IsDisposed) return;
             TampilkanRiwayat("");
         }
 
@@ -49,7 +53,7 @@ namespace Swasana
                 baris.Cells[colStatus.Index].Style.ForeColor = h.RiskLevel == RiskLevel.Waspada
                     ? Color.FromArgb(150, 100, 0)   // kuning gelap supaya terbaca di latar putih
                     : Tema.WarnaStatus(h.RiskLevel);
-                baris.Cells[colStatus.Index].Style.Font = new Font("Segoe UI Semibold", 9.75F);
+                baris.Cells[colStatus.Index].Style.Font = FontStatus;
             }
 
             var jumlah = dgvRiwayat.Rows.Count;
@@ -60,18 +64,22 @@ namespace Swasana
             else if (jumlah == 0 && !lblKosong.Text.StartsWith("Riwayat tidak bisa"))
                 lblKosong.Text = "Belum ada riwayat. Buka Cek cuaca, hasilnya otomatis tersimpan di sini.";
             lblKosong.BringToFront();
-            TampilkanTren(kataKunci);
+            _ = TampilkanTrenAsync(kataKunci);
         }
 
-        private void TampilkanTren(string kataKunci)
+        private async Task TampilkanTrenAsync(string kataKunci)
         {
+            var versi = ++versiTren;
             try
             {
                 var judul = kataKunci.Length == 0 ? "Tren suhu harian, semua lokasi" : $"Tren suhu harian, lokasi \"{kataKunci}\"";
-                grafikTren.Tampilkan(history.getTrenHarian(user, kataKunci), judul);
+                var tren = await Task.Run(() => history.getTrenHarian(user, kataKunci));
+                if (IsDisposed || versi != versiTren) return;
+                grafikTren.Tampilkan(tren, judul);
             }
             catch (Exception ex)
             {
+                if (IsDisposed || versi != versiTren) return;
                 grafikTren.Tampilkan(new(), "Tren tidak bisa dibaca: " + ex.Message);
             }
         }
