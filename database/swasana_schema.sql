@@ -78,3 +78,13 @@ SELECT * FROM (VALUES
     (3::SMALLINT, 'Gunakan pelindung diri (topi, tabir surya, jas hujan) dan hindari area rawan pohon tumbang.', 'perlindungan diri')
 ) AS seed(risk_id, action_text, category)
 WHERE NOT EXISTS (SELECT 1 FROM recommendations);
+
+-- Row Level Security: di Supabase, tabel schema public bisa dibaca lewat API publik (anon key)
+-- kalau RLS mati. Dengan RLS aktif tanpa policy, API publik tertutup, sedangkan aplikasi ini tetap
+-- bisa mengakses karena tersambung sebagai pemilik tabel. Di PostgreSQL lokal tidak berpengaruh.
+ALTER TABLE users           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE locations       ENABLE ROW LEVEL SECURITY;
+ALTER TABLE risk_levels     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE recommendations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE weather_data    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE search_history  ENABLE ROW LEVEL SECURITY;
