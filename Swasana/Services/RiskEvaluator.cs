@@ -13,7 +13,10 @@ public class RiskEvaluator
         {
             new SuhuRule(),
             new HujanRule(),
-            new HujanAnginRule()
+            new HujanAnginRule(),
+            new UvRule(),
+            new HeatIndexRule(),
+            new KualitasUdaraRule()
         };
     }
 
