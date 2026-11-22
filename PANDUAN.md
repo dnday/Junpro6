@@ -40,6 +40,21 @@ Pengaturan bisa diubah kapan saja lewat tautan **Atur koneksi database** di jend
 Alternatif tanpa jendela: isi environment variable `SWASANA_DB`, contoh
 `Host=localhost;Port=5432;Database=swasana_db;Username=postgres;Password=xxx`.
 
+### Memakai database online (Supabase)
+
+Supaya semua pengguna memakai satu database bersama dan tidak perlu menginstal PostgreSQL:
+
+1. Buat project di [supabase.com](https://supabase.com) (paket gratis cukup).
+2. Di dashboard klik **Connect**, pilih **Session pooler**, lalu salin URI-nya
+   (`postgresql://postgres.<id-project>:[YOUR-PASSWORD]@aws-…pooler.supabase.com:5432/postgres`).
+   Jangan pakai *Direct connection*: di paket gratis hanya lewat IPv6.
+3. Tempel URI tersebut ke kolom **Host** di jendela Koneksi database. Host, port, database, dan username terisi otomatis.
+4. Ketik password database Supabase, lalu **Sambungkan**. Tabel dan data awal dibuat otomatis.
+
+Koneksi ke server online selalu memakai SSL. Semua tabel memakai *Row Level Security* sehingga tidak bisa dibaca lewat API publik Supabase, hanya lewat aplikasi ini.
+
+> Catatan keamanan: password database tersimpan di setiap komputer yang memakai aplikasi. Bagikan hanya kepada pengguna yang dipercaya.
+
 Skema SQL lengkap ada di `swasana_schema.sql` jika ingin dijalankan manual lewat pgAdmin.
 
 ## 4. Cara pakai
