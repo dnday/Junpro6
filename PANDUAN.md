@@ -1,14 +1,14 @@
 # Panduan SWASANA
 
-SWASANA (Sistem Waspada Suasana & Adaptasi Iklim) adalah aplikasi desktop yang mengambil cuaca terkini dari **Open-Meteo Web API**, menilai tingkat risikonya (**Aman / Waspada / Bahaya**), memberi saran tindakan, dan menyimpan riwayat pengecekan ke **PostgreSQL**.
+SWASANA (Sistem Waspada Suasana & Adaptasi Iklim) adalah aplikasi desktop untuk mengecek cuaca terkini lokasi mana pun lewat **Open-Meteo Web API**. Aplikasi menilai tingkat risikonya (**Aman / Waspada / Bahaya**), memberi saran tindakan, dan menyimpan riwayat pengecekan ke **PostgreSQL**.
 
 ## 1. Kebutuhan
 
 | Komponen | Keterangan |
 |---|---|
-| Windows 10/11 64-bit | .NET **tidak** perlu diinstal, sudah ikut di dalam `Swasana.exe` |
+| Windows 10 (versi 2004+) / 11, 64-bit | .NET **tidak** perlu diinstal, sudah ikut di dalam `Swasana.exe` |
 | PostgreSQL 14 atau lebih baru | Unduh di https://www.postgresql.org/download/windows/ dan ingat password user `postgres` |
-| Koneksi internet | Untuk mengambil data cuaca dari Open-Meteo |
+| Koneksi internet | Untuk data cuaca dan pencarian lokasi |
 
 ## 2. Instalasi
 
@@ -20,7 +20,7 @@ SWASANA (Sistem Waspada Suasana & Adaptasi Iklim) adalah aplikasi desktop yang m
 
 ## 3. Konfigurasi database (sekali saja)
 
-Saat pertama dijalankan muncul jendela **Pengaturan Database**:
+Saat pertama dijalankan muncul jendela **Koneksi database**:
 
 | Isian | Nilai umum |
 |---|---|
@@ -30,28 +30,34 @@ Saat pertama dijalankan muncul jendela **Pengaturan Database**:
 | Username | `postgres` |
 | Password | password PostgreSQL Anda |
 
-Klik **Tes & Simpan**. Aplikasi akan:
+Klik **Sambungkan**. Aplikasi akan:
 - membuat database `swasana_db` jika belum ada,
 - membuat semua tabel, constraint, dan data awal (tingkat risiko + rekomendasi),
 - menyimpan pengaturan di `%APPDATA%\SWASANA\koneksi.txt`.
 
-Pengaturan bisa diubah kapan saja lewat tautan **Pengaturan Database** di jendela login.
+Pengaturan bisa diubah kapan saja lewat tautan **Atur koneksi database** di jendela masuk.
 
 Alternatif tanpa jendela: isi environment variable `SWASANA_DB`, contoh
 `Host=localhost;Port=5432;Database=swasana_db;Username=postgres;Password=xxx`.
 
-Skema SQL lengkap ada di `database/swasana_schema.sql` jika ingin dijalankan manual lewat pgAdmin.
+Skema SQL lengkap ada di `swasana_schema.sql` jika ingin dijalankan manual lewat pgAdmin.
 
 ## 4. Cara pakai
 
-1. **Login**: ketik username lalu **Masuk**. Username baru otomatis didaftarkan, dan setiap username punya riwayat sendiri.
-2. **Menu Utama**: pilih **Cek Cuaca**, **Riwayat**, **Tentang**, atau **Keluar**.
-3. **Cek Cuaca**:
-   - Ketik nama kota (misalnya `Sleman`), lalu klik **Cari Koordinat**. Latitude dan longitude terisi otomatis dari Open-Meteo Geocoding.
-   - Klik **Cek Cuaca**. Hasilnya menampilkan suhu, kelembapan, angin, dan curah hujan, status risiko berwarna, rincian tiap aturan, serta rekomendasi.
-   - Bisa juga langsung klik **Cek Cuaca** tanpa mencari koordinat, atau mengisi latitude/longitude sendiri (koma atau titik sama-sama diterima).
+1. **Masuk**: ketik username lalu **Masuk**. Username baru otomatis didaftarkan, dan setiap username punya riwayat sendiri.
+2. **Menu**: pilih **Cek cuaca**, **Riwayat**, **Tentang SWASANA**, atau **Keluar**.
+3. **Cek cuaca**:
+   - Mulai ketik nama kota, misalnya `yog`. Daftar saran muncul (lokasi Indonesia di atas). Pilih dengan klik, atau dengan panah ↑/↓ lalu Enter, dan cuacanya langsung tampil.
+   - Atau klik **Lokasi saya** untuk memakai lokasi perangkat (layanan lokasi Windows harus aktif: *Settings › Privacy & security › Location*).
+   - Bisa juga mengisi latitude/longitude sendiri (koma atau titik sama-sama diterima) lalu klik **Cek cuaca**.
+   - Hasilnya:
+     - panel cuaca dengan suhu, kondisi, dan suhu yang terasa, dengan latar dan animasi yang menyesuaikan cuaca;
+     - prakiraan 8 jam;
+     - kelembapan, angin, curah hujan, dan indeks UV;
+     - **status risiko** beserta alasannya;
+     - kartu **saran tindakan**.
    - Setiap hasil otomatis tersimpan ke riwayat.
-4. **Riwayat**: menampilkan semua pengecekan milik user yang sedang login, terbaru di atas. Ketik nama lokasi lalu **Cari** untuk menyaring.
+4. **Riwayat**: semua pengecekan milik user yang sedang masuk, terbaru di atas. Ketik nama lokasi lalu **Cari** untuk menyaring. Jendela ini bisa diperbesar.
 
 ### Aturan risiko
 
@@ -61,16 +67,33 @@ Skema SQL lengkap ada di `database/swasana_schema.sql` jika ingin dijalankan man
 | Waspada | suhu > 33 °C, **atau** hujan ≥ 5 mm/jam |
 | Aman | selain kondisi di atas |
 
+### Animasi
+
+Panel cuaca menampilkan adegan yang mengikuti kondisi cuaca. Contohnya, orang berpayung saat hujan, orang bertopi lebar dengan botol minum saat panas, berteduh di bawah payung saat sangat panas, kilat saat badai, daun beterbangan saat angin kencang, dan bintang di malam hari. Semua animasi otomatis mati kalau *Animation effects* di Windows dimatikan (*Settings › Accessibility › Visual effects*).
+
 ## 5. Masalah umum
 
 | Pesan | Penyebab dan solusi |
 |---|---|
-| *Gagal terhubung ke PostgreSQL: password authentication failed* | Password salah. Ulangi di Pengaturan Database. |
-| *Failed to connect to 127.0.0.1:5432* | Service PostgreSQL belum jalan. Buka `services.msc` lalu start `postgresql-x64-xx`. |
-| *Gagal mengambil data dari Open-Meteo* | Tidak ada internet atau koneksi diblokir. |
-| *Lokasi "..." tidak ditemukan* | Periksa ejaan nama kota, atau isi latitude/longitude manual. |
+| *Password PostgreSQL salah* | Masukkan password yang dibuat saat menginstal PostgreSQL. |
+| *Tidak bisa tersambung ke PostgreSQL* | Service PostgreSQL belum jalan. Buka `services.msc` lalu start `postgresql-x64-xx`. |
+| *Open-Meteo tidak bisa dihubungi* | Tidak ada internet atau koneksi diblokir. |
+| *Akses lokasi ditolak* | Aktifkan *Location* dan *Let desktop apps access your location* di Settings Windows. |
+| *Lokasi "..." tidak ditemukan* | Periksa ejaan, pilih dari daftar saran, atau isi koordinat manual. |
 
-## 6. Untuk pengembang
+## 6. Privasi
+
+Koordinat lokasi yang dicek dikirim ke Open-Meteo (data cuaca). Untuk tombol **Lokasi saya**, koordinat juga dikirim ke BigDataCloud untuk mencari nama tempatnya. Riwayat hanya disimpan di database PostgreSQL Anda sendiri.
+
+## 7. Kredit
+
+- Data cuaca & geocoding: [Open-Meteo](https://open-meteo.com) (CC BY 4.0)
+- Nama tempat dari koordinat: [BigDataCloud](https://www.bigdatacloud.com) reverse geocoding (client API gratis)
+- Ikon cuaca: [Meteocons](https://github.com/basmilius/meteocons) oleh Bas Milius (MIT)
+- Animasi transisi: [FluentTransitions](https://github.com/awaescher/FluentTransitions) (MIT)
+- Driver PostgreSQL: [Npgsql](https://www.npgsql.org) (PostgreSQL License)
+
+## 8. Untuk pengembang
 
 ```
 dotnet run --project Swasana          # jalankan dari source
