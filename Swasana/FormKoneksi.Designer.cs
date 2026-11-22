@@ -65,7 +65,7 @@ namespace Swasana
             lblInfo.Name = "lblInfo";
             lblInfo.Size = new Size(372, 38);
             lblInfo.TabIndex = 1;
-            lblInfo.Text = "Isi data server PostgreSQL. Database dan tabel dibuat otomatis jika belum ada.";
+            lblInfo.Text = "PostgreSQL lokal atau online (misalnya Supabase). URI koneksi bisa langsung ditempel ke kolom Host.";
             //
             // lblHost
             //

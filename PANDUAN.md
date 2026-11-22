@@ -7,18 +7,25 @@ SWASANA (Sistem Waspada Suasana & Adaptasi Iklim) adalah aplikasi desktop untuk 
 | Komponen | Keterangan |
 |---|---|
 | Windows 10 (versi 2004+) / 11, 64-bit | .NET **tidak** perlu diinstal, sudah ikut di dalam `Swasana.exe` |
-| PostgreSQL 14 atau lebih baru | Unduh di https://www.postgresql.org/download/windows/ dan ingat password user `postgres` |
+| PostgreSQL 14 atau lebih baru | **Tidak perlu** untuk versi rilis (sudah memakai database online). Hanya kalau ingin memakai database sendiri |
 | Koneksi internet | Untuk data cuaca dan pencarian lokasi |
 
 ## 2. Instalasi
 
-1. Instal PostgreSQL (biarkan port **5432**), lalu catat password user `postgres`.
-2. Ekstrak `SWASANA.zip` ke folder mana saja, misalnya `D:\SWASANA`.
-3. Jalankan `Swasana.exe`. Tidak ada langkah instalasi lain.
+1. Ekstrak `SWASANA.zip` ke folder mana saja, misalnya `D:\SWASANA`.
+2. Jalankan `Swasana.exe` lalu masuk dengan username. Tidak ada langkah instalasi lain.
 
 > Jika muncul peringatan Windows SmartScreen, klik **More info → Run anyway** (aplikasi belum ditandatangani digital).
 
-## 3. Konfigurasi database (sekali saja)
+## 3. Konfigurasi database
+
+**Versi rilis sudah tersambung ke database online bawaan (Supabase)**, jadi pengguna bisa langsung masuk tanpa menginstal PostgreSQL atau mengisi pengaturan apa pun. Aplikasi memakai akun database khusus yang hanya boleh membaca, menambah, dan mengubah data aplikasi.
+
+Pengaturan di bawah ini hanya diperlukan kalau ingin memakai database sendiri. Untuk kembali ke database bawaan, buka **Atur koneksi database** lalu klik **Pakai database online bawaan**.
+
+> Untuk pengembang: koneksi bawaan dibaca dari `Swasana/koneksi-bawaan.txt` (tidak ikut di repo karena berisi password) dan ditanam ke exe saat build. Akun aplikasinya dibuat dengan `database/supabase_akun_aplikasi.sql`. Tanpa file itu, exe meminta pengaturan koneksi seperti biasa.
+
+### Memakai database sendiri
 
 Saat pertama dijalankan muncul jendela **Koneksi database**:
 
@@ -39,6 +46,21 @@ Pengaturan bisa diubah kapan saja lewat tautan **Atur koneksi database** di jend
 
 Alternatif tanpa jendela: isi environment variable `SWASANA_DB`, contoh
 `Host=localhost;Port=5432;Database=swasana_db;Username=postgres;Password=xxx`.
+
+### Memakai database online (Supabase)
+
+Supaya semua pengguna memakai satu database bersama dan tidak perlu menginstal PostgreSQL:
+
+1. Buat project di [supabase.com](https://supabase.com) (paket gratis cukup).
+2. Di dashboard klik **Connect**, pilih **Session pooler**, lalu salin URI-nya
+   (`postgresql://postgres.<id-project>:[YOUR-PASSWORD]@aws-…pooler.supabase.com:5432/postgres`).
+   Jangan pakai *Direct connection*: di paket gratis hanya lewat IPv6.
+3. Tempel URI tersebut ke kolom **Host** di jendela Koneksi database. Host, port, database, dan username terisi otomatis.
+4. Ketik password database Supabase, lalu **Sambungkan**. Tabel dan data awal dibuat otomatis.
+
+Koneksi ke server online selalu memakai SSL. Semua tabel memakai *Row Level Security* sehingga tidak bisa dibaca lewat API publik Supabase, hanya lewat aplikasi ini.
+
+> Catatan keamanan: password database tersimpan di setiap komputer yang memakai aplikasi. Bagikan hanya kepada pengguna yang dipercaya.
 
 Skema SQL lengkap ada di `swasana_schema.sql` jika ingin dijalankan manual lewat pgAdmin.
 
