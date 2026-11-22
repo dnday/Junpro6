@@ -37,7 +37,7 @@ public class WeatherServiceTests
     {
         const string json = """
             {"latitude":-7.75,"longitude":110.375,"current":{"time":"2026-11-22T13:00",
-             "temperature_2m":31.4,"relative_humidity_2m":68,"precipitation":2.5,"wind_speed_10m":11.2}}
+             "temperature_2m":31.4,"relative_humidity_2m":68,"precipitation":2.5,"wind_speed_10m":11.2,"weather_code":61,"is_day":0}}
             """;
         var data = WeatherService.ParseCurrent(json);
         Assert.Equal(31.4, data.Temperature);
@@ -45,6 +45,8 @@ public class WeatherServiceTests
         Assert.Equal(2.5, data.Rainfall);
         Assert.Equal(11.2, data.WindSpeed);
         Assert.Equal(new DateTime(2026, 11, 22, 13, 0, 0), data.Timestamp);
+        Assert.Equal(61, data.WeatherCode);
+        Assert.False(data.IsDay);
     }
 
     [Fact]
@@ -60,9 +62,53 @@ public class WeatherServiceTests
     }
 
     [Fact]
+    public void ParseSaran_IndonesiaDidahulukan()
+    {
+        const string json = """
+            {"results":[
+              {"name":"Yoga","latitude":-3.1,"longitude":29.9,"admin1":"Ngozi","country":"Burundi","country_code":"BI"},
+              {"name":"DI Yogyakarta","latitude":-7.8,"longitude":110.4,"admin1":"Yogyakarta","country":"Indonesia","country_code":"ID"}]}
+            """;
+        var saran = WeatherService.ParseSaran(json);
+        Assert.Equal(2, saran.Count);
+        Assert.Equal("DI Yogyakarta, Yogyakarta", saran[0].NamaLengkap);
+        Assert.Equal("Yogyakarta, Indonesia", saran[0].Keterangan);
+        Assert.Equal("Yoga, Ngozi", saran[1].NamaLengkap);
+    }
+
+    [Fact]
+    public void ParseSaran_TanpaHasil_ListKosong()
+    {
+        Assert.Empty(WeatherService.ParseSaran("""{"generationtime_ms":0.5}"""));
+    }
+
+    [Fact]
     public void ParseGeocode_TidakDitemukan_Null()
     {
         Assert.Null(WeatherService.ParseGeocode("""{"generationtime_ms":0.5}"""));
+    }
+}
+
+public class IkonTests
+{
+    [Theory]
+    [InlineData(0, true, "clear-day")]
+    [InlineData(0, false, "clear-night")]
+    [InlineData(2, true, "partly-cloudy-day")]
+    [InlineData(61, true, "rain")]
+    [InlineData(65, true, "extreme-rain")]
+    [InlineData(95, true, "thunderstorms-rain")]
+    [InlineData(-1, true, "not-available")]
+    public void NamaCuaca_SesuaiKodeWmo(int kode, bool siang, string harapan)
+    {
+        Assert.Equal(harapan, Ikon.NamaCuaca(kode, siang));
+    }
+
+    [Fact]
+    public void SemuaIkonTertanamDiAplikasi()
+    {
+        foreach (var nama in new[] { "clear-day", "rain", "humidity", "wind", "raindrop", "code-red" })
+            Assert.NotNull(Ikon.Muat(nama));
     }
 }
 
