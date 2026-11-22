@@ -1,0 +1,36 @@
+flowchart LR
+    subgraph UI["Tampilan (Windows Forms)"]
+        FK[FormKoneksi]
+        FL[FormLogin]
+        FU[FormUtama]
+        FC[FormCekCuaca]
+        FR[FormRiwayat]
+    end
+    subgraph SV["Layanan"]
+        WS[WeatherService]
+        RE["RiskEvaluator + 6 RiskRule"]
+        AR[ActionRecommender]
+        WH[WeatherHistoryManager]
+        LP[LokasiPerangkat]
+        EX[EksporRiwayat]
+    end
+    subgraph DA["Akses data"]
+        RP["UserRepository / LocationRepository"]
+        DC[DatabaseContext]
+        DS[DatabaseSetup]
+    end
+    DB[("PostgreSQL / Supabase")]
+    OM(["Open-Meteo: Geocoding, Forecast, Air Quality"])
+    BD(["BigDataCloud: nama tempat"])
+    GPS(["Layanan lokasi Windows"])
+
+    FK --> DS
+    FL --> RP
+    FU --> FC & FR
+    FC --> WS & RE & AR & WH & LP & RP
+    FR --> WH & EX
+    WS --> OM & BD
+    LP --> GPS
+    WH --> RP
+    AR & WH & RP --> DC
+    DS & DC --> DB

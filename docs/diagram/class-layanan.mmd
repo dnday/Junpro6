@@ -1,0 +1,87 @@
+classDiagram
+    direction TB
+    class RiskRule {
+        <<abstract>>
+        +string Nama
+        #RiskRule(string nama)
+        +Evaluate(WeatherData)* RiskLevel
+        #Klasifikasi(nilai, batasWaspada, batasBahaya)$ RiskLevel
+    }
+    class SuhuRule {
+        -BatasWaspada = 33
+        -BatasBahaya = 35
+        +Evaluate(WeatherData) RiskLevel
+    }
+    class HujanRule {
+        -HujanSedang = 5
+        +Evaluate(WeatherData) RiskLevel
+    }
+    class HujanAnginRule {
+        -HujanLebat = 10
+        -AnginKencang = 45
+        +Evaluate(WeatherData) RiskLevel
+    }
+    class UvRule {
+        -BatasWaspada = 8
+        -BatasBahaya = 11
+        +Evaluate(WeatherData) RiskLevel
+    }
+    class HeatIndexRule {
+        -BatasWaspada = 32
+        -BatasBahaya = 41
+        +Evaluate(WeatherData) RiskLevel
+        +Hitung(suhu, kelembapan)$ double
+    }
+    class KualitasUdaraRule {
+        +Evaluate(WeatherData) RiskLevel
+    }
+    class RiskEvaluator {
+        -List~RiskRule~ rules
+        +evaluateRisk(WeatherData) RiskLevel
+        +rincian(WeatherData) List
+    }
+    class ActionRecommender {
+        -DatabaseContext context
+        -Dictionary recommendationRules
+        +getRecommendation(RiskLevel) List~string~
+        +getRecommendationDetail(RiskLevel) List
+    }
+    class WeatherHistoryManager {
+        -DatabaseContext context
+        -LocationRepository locations
+        +saveHistory(User, Location, WeatherData, note) void
+        +getHistory(User) List~SearchHistory~
+        +getTrenHarian(User, kataKunci) List
+    }
+    class WeatherService {
+        -HttpClient http$
+        +CariSaranAsync(kata, batal) Task
+        +FindCityAsync(city) Task
+        +GetCurrentAsync(lat, lon) Task~WeatherData~
+        +NamaDariKoordinatAsync(lat, lon) Task~string~
+        +ParseCurrent(json)$ WeatherData
+        +ParseSaran(json)$ List~SaranLokasi~
+        +ParseAirQuality(json)$ (int?, double?)
+    }
+    class LokasiPerangkat {
+        <<static>>
+        +AmbilAsync() Task
+    }
+    class EksporRiwayat {
+        <<static>>
+        +BuatCsv(riwayat) string
+    }
+    class FormatCuaca {
+        <<static>>
+        +KategoriAqi(int) string
+        +KategoriUv(double) string
+        +NilaiAturan(nama, WeatherData) string
+    }
+
+    RiskRule <|-- SuhuRule
+    RiskRule <|-- HujanRule
+    RiskRule <|-- HujanAnginRule
+    RiskRule <|-- UvRule
+    RiskRule <|-- HeatIndexRule
+    RiskRule <|-- KualitasUdaraRule
+    RiskEvaluator o-- "6" RiskRule

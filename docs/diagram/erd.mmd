@@ -1,0 +1,52 @@
+erDiagram
+    users ||--o{ locations : "memantau"
+    users ||--o{ search_history : "melakukan"
+    locations ||--o{ weather_data : "memiliki"
+    risk_levels ||--o{ weather_data : "mengklasifikasi"
+    risk_levels ||--o{ recommendations : "memicu"
+    weather_data ||--o{ search_history : "dicatat"
+
+    users {
+        SERIAL user_id PK
+        VARCHAR_50 username UK "unik"
+        TIMESTAMP created_at
+    }
+    locations {
+        SERIAL location_id PK
+        INTEGER user_id FK
+        VARCHAR_100 city_name
+        DECIMAL_9_6 latitude "-90 s.d. 90"
+        DECIMAL_9_6 longitude "-180 s.d. 180"
+        BOOLEAN is_favorite "lokasi favorit"
+    }
+    risk_levels {
+        SMALLSERIAL risk_id PK "1 Aman, 2 Waspada, 3 Bahaya"
+        VARCHAR_20 level_name UK
+        CHAR_7 color_code
+        DECIMAL_5_2 min_temperature
+        DECIMAL_6_2 min_rainfall
+        DECIMAL_5_2 min_wind_speed
+    }
+    recommendations {
+        SERIAL rec_id PK
+        SMALLINT risk_id FK
+        TEXT action_text
+        VARCHAR_30 category "aktivitas, kesehatan, perlindungan diri"
+    }
+    weather_data {
+        BIGSERIAL weather_id PK
+        INTEGER location_id FK
+        SMALLINT risk_id FK
+        DECIMAL_5_2 temperature
+        DECIMAL_5_2 humidity "0 s.d. 100"
+        DECIMAL_5_2 wind_speed
+        DECIMAL_6_2 rainfall
+        TIMESTAMP recorded_at
+    }
+    search_history {
+        BIGSERIAL history_id PK
+        INTEGER user_id FK
+        BIGINT weather_id FK
+        TIMESTAMP searched_at
+        VARCHAR_255 note
+    }

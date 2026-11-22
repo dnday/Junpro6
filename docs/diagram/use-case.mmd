@@ -1,0 +1,26 @@
+flowchart LR
+    U((Pengguna))
+    subgraph S["Sistem SWASANA"]
+        UC1([Masuk / daftar dengan username])
+        UC2([Atur koneksi database])
+        UC3([Cari lokasi dengan saran otomatis])
+        UC4([Pakai lokasi perangkat])
+        UC5([Cek cuaca dan status risiko])
+        UC6([Lihat saran tindakan])
+        UC7([Lihat prakiraan per jam / 7 hari])
+        UC8([Kelola lokasi favorit])
+        UC9([Lihat riwayat dan grafik tren])
+        UC10([Ekspor riwayat ke CSV])
+    end
+    API(("Open-Meteo API"))
+    DB(("Database PostgreSQL / Supabase"))
+
+    U --- UC1 & UC2 & UC3 & UC4 & UC5 & UC7 & UC8 & UC9 & UC10
+    UC5 -. include .-> UC6
+    UC5 -. include .-> UC3
+    UC3 --- API
+    UC5 --- API
+    UC1 --- DB
+    UC5 --- DB
+    UC8 --- DB
+    UC9 --- DB
