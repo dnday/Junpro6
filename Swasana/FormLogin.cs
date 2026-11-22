@@ -14,8 +14,8 @@ namespace Swasana
             Db = db;
             picLogo.Image = Ikon.Muat("partly-cloudy-day");
             Animasi.FadeIn(this);
-            Animasi.Hover(btnLogin, Color.FromArgb(28, 104, 124));
-            Animasi.Hover(btnClose, Color.FromArgb(231, 241, 244));
+            Animasi.Hover(btnLogin, Tema.HoverUtama);
+            Animasi.Hover(btnClose, Tema.HoverSekunder);
         }
 
         private async void btnLogin_Click(object sender, EventArgs e)
@@ -52,9 +52,9 @@ namespace Swasana
                 User = ditemukan;
                 DialogResult = DialogResult.OK;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                lblPesan.Text = "Database tidak bisa diakses. Periksa lewat \"Atur koneksi database\". (" + ex.Message + ")";
+                lblPesan.Text = "Database tidak bisa diakses. Periksa lewat \"Atur koneksi database\".";
             }
             finally
             {

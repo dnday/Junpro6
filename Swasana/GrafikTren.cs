@@ -8,6 +8,8 @@ namespace Swasana
     public class GrafikTren : Control
     {
         private List<(DateTime Tanggal, double Maks, double Min)> data = new();
+        private readonly ToolTip tip = new ToolTip();
+        private int indeksSorot = -1;
 
         [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string Judul { get; set; } = "Tren suhu harian";
@@ -18,11 +20,55 @@ namespace Swasana
             BackColor = Color.White;
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) tip.Dispose();
+            base.Dispose(disposing);
+        }
+
         public void Tampilkan(List<(DateTime Tanggal, double Maks, double Min)> titik, string judul)
         {
             data = titik;
             Judul = judul;
+            indeksSorot = -1;
+            tip.Hide(this);
             Invalidate();
+        }
+
+        private (RectangleF Area, double Atas, double Bawah) Geometri()
+        {
+            var area = new RectangleF(44, 36, Math.Max(1, Width - 64), Math.Max(1, Height - 64));
+            var atas = Math.Ceiling(data.Max(d => d.Maks) + 1);
+            var bawah = Math.Floor(data.Min(d => d.Min) - 1);
+            if (atas - bawah < 4) { atas += 2; bawah -= 2; }
+            return (area, atas, bawah);
+        }
+
+        private float TitikX(RectangleF area, int i) =>
+            data.Count == 1 ? area.Left + area.Width / 2 : area.Left + area.Width * i / (data.Count - 1);
+
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            base.OnMouseMove(e);
+            var indeks = -1;
+            if (data.Count > 0)
+            {
+                var (area, _, _) = Geometri();
+                if (e.X >= area.Left - 10 && e.X <= area.Right + 10)
+                    indeks = Enumerable.Range(0, data.Count).MinBy(i => Math.Abs(TitikX(area, i) - e.X));
+            }
+            if (indeks == indeksSorot) return;
+            indeksSorot = indeks;
+            if (indeks < 0) { tip.Hide(this); return; }
+            var d = data[indeks];
+            tip.Show($"{d.Tanggal:dd/MM/yyyy}\nMaks {d.Maks:0.#}°\nMin {d.Min:0.#}°", this, e.X + 14, e.Y + 18);
+        }
+
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            base.OnMouseLeave(e);
+            indeksSorot = -1;
+            tip.Hide(this);
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -37,10 +83,13 @@ namespace Swasana
             TextRenderer.DrawText(g, Judul, fJudul, new Point(10, 8), Tema.Tinta);
 
             // Legenda
-            TextRenderer.DrawText(g, "Maks", fKecil, new Point(Width - 112, 10), Tema.Redup);
-            TextRenderer.DrawText(g, "Min", fKecil, new Point(Width - 52, 10), Tema.Redup);
-            using (var kM = new SolidBrush(WarnaMaks)) g.FillEllipse(kM, Width - 124, 14, 8, 8);
-            using (var kN = new SolidBrush(WarnaMin)) g.FillEllipse(kN, Width - 64, 14, 8, 8);
+            if (Width >= 420)
+            {
+                TextRenderer.DrawText(g, "Maks", fKecil, new Point(Width - 112, 10), Tema.Redup);
+                TextRenderer.DrawText(g, "Min", fKecil, new Point(Width - 52, 10), Tema.Redup);
+                using (var kM = new SolidBrush(WarnaMaks)) g.FillEllipse(kM, Width - 124, 14, 8, 8);
+                using (var kN = new SolidBrush(WarnaMin)) g.FillEllipse(kN, Width - 64, 14, 8, 8);
+            }
 
             if (data.Count == 0)
             {
@@ -48,12 +97,7 @@ namespace Swasana
                 return;
             }
 
-            var area = new RectangleF(44, 36, Width - 64, Height - 64);
-            var atas = Math.Ceiling(data.Max(d => d.Maks) + 1);
-            var bawah = Math.Floor(data.Min(d => d.Min) - 1);
-            if (atas - bawah < 4) { atas += 2; bawah -= 2; }
-
-            float X(int i) => data.Count == 1 ? area.Left + area.Width / 2 : area.Left + area.Width * i / (data.Count - 1);
+            var (area, atas, bawah) = Geometri();
             float Y(double v) => (float)(area.Bottom - (v - bawah) / (atas - bawah) * area.Height);
 
             // Garis bantu sumbu Y
@@ -70,10 +114,10 @@ namespace Swasana
             var loncat = Math.Max(1, (int)Math.Ceiling(data.Count / (area.Width / 56)));
             for (int i = 0; i < data.Count; i += loncat)
                 TextRenderer.DrawText(g, data[i].Tanggal.ToString("dd/MM"), fKecil,
-                    new Rectangle((int)X(i) - 24, (int)area.Bottom + 6, 48, 16), Tema.Redup, TextFormatFlags.HorizontalCenter);
+                    new Rectangle((int)TitikX(area, i) - 24, (int)area.Bottom + 6, 48, 16), Tema.Redup, TextFormatFlags.HorizontalCenter);
 
-            Garis(g, data.Select((d, i) => new PointF(X(i), Y(d.Min))).ToArray(), WarnaMin);
-            Garis(g, data.Select((d, i) => new PointF(X(i), Y(d.Maks))).ToArray(), WarnaMaks);
+            Garis(g, data.Select((d, i) => new PointF(TitikX(area, i), Y(d.Min))).ToArray(), WarnaMin);
+            Garis(g, data.Select((d, i) => new PointF(TitikX(area, i), Y(d.Maks))).ToArray(), WarnaMaks);
 
             if (data.Count == 1)
                 TextRenderer.DrawText(g, "Tren terlihat setelah ada data dari 2 hari atau lebih.", fKecil,

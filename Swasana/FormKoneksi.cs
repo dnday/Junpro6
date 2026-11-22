@@ -11,8 +11,8 @@ namespace Swasana
         {
             InitializeComponent();
             Animasi.FadeIn(this);
-            Animasi.Hover(btnSimpan, Color.FromArgb(28, 104, 124));
-            Animasi.Hover(btnBatal, Color.FromArgb(231, 241, 244));
+            Animasi.Hover(btnSimpan, Tema.HoverUtama);
+            Animasi.Hover(btnBatal, Tema.HoverSekunder);
 
             // Tampilkan pengaturan lama (kecuali password) kalau sudah pernah disimpan
             var lama = DatabaseSetup.LoadConnectionString();
@@ -72,7 +72,7 @@ namespace Swasana
 
         private void Pesan(string teks, bool error = true)
         {
-            lblPesan.ForeColor = error ? Color.FromArgb(198, 40, 40) : Tema.Redup;
+            lblPesan.ForeColor = error ? Tema.Galat : Tema.Redup;
             lblPesan.Text = teks;
         }
 

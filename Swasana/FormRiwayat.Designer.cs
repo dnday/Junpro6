@@ -24,6 +24,8 @@ namespace Swasana
             lblCari = new Label();
             tbCari = new TextBox();
             btnCari = new Button();
+            cbStatus = new ComboBox();
+            btnEkspor = new Button();
             dgvRiwayat = new DataGridView();
             colIkon = new DataGridViewImageColumn();
             colStatus = new DataGridViewTextBoxColumn();
@@ -98,6 +100,38 @@ namespace Swasana
             btnCari.UseVisualStyleBackColor = false;
             btnCari.Click += btnCari_Click;
             //
+            // cbStatus
+            //
+            cbStatus.AccessibleName = "Filter status risiko";
+            cbStatus.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbStatus.Font = new Font("Segoe UI", 11F);
+            cbStatus.FormattingEnabled = true;
+            cbStatus.Items.AddRange(new object[] { "Semua status", "Aman", "Waspada", "Bahaya" });
+            cbStatus.Location = new Point(434, 98);
+            cbStatus.Name = "cbStatus";
+            cbStatus.SelectedIndex = 0;
+            cbStatus.Size = new Size(150, 28);
+            cbStatus.TabIndex = 4;
+            cbStatus.SelectedIndexChanged += cbStatus_SelectedIndexChanged;
+            //
+            // btnEkspor
+            //
+            btnEkspor.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnEkspor.BackColor = Color.White;
+            btnEkspor.Cursor = Cursors.Hand;
+            btnEkspor.Enabled = false;
+            btnEkspor.FlatAppearance.BorderColor = Color.FromArgb(200, 212, 219);
+            btnEkspor.FlatStyle = FlatStyle.Flat;
+            btnEkspor.Font = new Font("Segoe UI", 9.75F);
+            btnEkspor.ForeColor = Color.FromArgb(15, 76, 92);
+            btnEkspor.Location = new Point(486, 592);
+            btnEkspor.Name = "btnEkspor";
+            btnEkspor.Size = new Size(100, 32);
+            btnEkspor.TabIndex = 8;
+            btnEkspor.Text = "Ekspor CSV";
+            btnEkspor.UseVisualStyleBackColor = false;
+            btnEkspor.Click += btnEkspor_Click;
+            //
             // dgvRiwayat
             //
             dgvRiwayat.AllowUserToAddRows = false;
@@ -136,7 +170,8 @@ namespace Swasana
             dgvRiwayat.RowTemplate.Height = 34;
             dgvRiwayat.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvRiwayat.Size = new Size(672, 238);
-            dgvRiwayat.TabIndex = 4;
+            dgvRiwayat.TabIndex = 5;
+            dgvRiwayat.SortCompare += dgvRiwayat_SortCompare;
             //
             // colIkon
             //
@@ -178,14 +213,14 @@ namespace Swasana
             // colHujan
             //
             colHujan.FillWeight = 90F;
-            colHujan.HeaderText = "Hujan (mm/jam)";
+            colHujan.HeaderText = "Hujan (mm/j)";
             colHujan.Name = "colHujan";
             colHujan.ReadOnly = true;
             //
             // colAngin
             //
             colAngin.FillWeight = 90F;
-            colAngin.HeaderText = "Angin (km/jam)";
+            colAngin.HeaderText = "Angin (km/j)";
             colAngin.Name = "colAngin";
             colAngin.ReadOnly = true;
             //
@@ -195,7 +230,7 @@ namespace Swasana
             grafikTren.Location = new Point(24, 140);
             grafikTren.Name = "grafikTren";
             grafikTren.Size = new Size(672, 190);
-            grafikTren.TabIndex = 8;
+            grafikTren.TabIndex = 10;
             //
             // lblKosong
             //
@@ -206,7 +241,7 @@ namespace Swasana
             lblKosong.Location = new Point(25, 392);
             lblKosong.Name = "lblKosong";
             lblKosong.Size = new Size(670, 60);
-            lblKosong.TabIndex = 5;
+            lblKosong.TabIndex = 6;
             lblKosong.Text = "Belum ada riwayat. Buka Cek cuaca, hasilnya otomatis tersimpan di sini.";
             lblKosong.TextAlign = ContentAlignment.MiddleCenter;
             lblKosong.Visible = false;
@@ -220,7 +255,7 @@ namespace Swasana
             lblJumlah.Location = new Point(24, 601);
             lblJumlah.Name = "lblJumlah";
             lblJumlah.Size = new Size(41, 15);
-            lblJumlah.TabIndex = 6;
+            lblJumlah.TabIndex = 7;
             lblJumlah.Text = "0 data";
             //
             // btnKembali
@@ -235,7 +270,7 @@ namespace Swasana
             btnKembali.Location = new Point(596, 592);
             btnKembali.Name = "btnKembali";
             btnKembali.Size = new Size(100, 32);
-            btnKembali.TabIndex = 7;
+            btnKembali.TabIndex = 9;
             btnKembali.Text = "Kembali";
             btnKembali.UseVisualStyleBackColor = false;
             btnKembali.Click += btnKembali_Click;
@@ -248,10 +283,12 @@ namespace Swasana
             BackColor = Color.FromArgb(243, 246, 248);
             ClientSize = new Size(720, 640);
             Controls.Add(btnKembali);
+            Controls.Add(btnEkspor);
             Controls.Add(lblJumlah);
             Controls.Add(lblKosong);
             Controls.Add(grafikTren);
             Controls.Add(dgvRiwayat);
+            Controls.Add(cbStatus);
             Controls.Add(btnCari);
             Controls.Add(tbCari);
             Controls.Add(lblCari);
@@ -275,6 +312,8 @@ namespace Swasana
         private Label lblCari;
         private TextBox tbCari;
         private Button btnCari;
+        private ComboBox cbStatus;
+        private Button btnEkspor;
         private DataGridView dgvRiwayat;
         private DataGridViewImageColumn colIkon;
         private DataGridViewTextBoxColumn colStatus;
