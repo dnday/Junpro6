@@ -14,6 +14,10 @@ namespace Swasana
         private readonly RiskEvaluator riskEvaluator = new RiskEvaluator();
         private readonly ActionRecommender recommender;
         private readonly WeatherHistoryManager history;
+        private readonly LocationRepository lokasiRepo;
+        private List<Location> favorit = new List<Location>();
+        private WeatherData? dataTerakhir;
+        private bool tampilHarian;
         private bool isiOtomatis;
 
         // Warna langit di latar hero, mengikuti kondisi cuaca (seperti aplikasi cuaca pada umumnya).
@@ -47,12 +51,18 @@ namespace Swasana
             this.user = user;
             recommender = new ActionRecommender(db);
             history = new WeatherHistoryManager(db);
+            lokasiRepo = new LocationRepository(db);
 
             picCuaca.Image = Ikon.Muat("partly-cloudy-day");
             picKelembapan.Image = Ikon.Muat("humidity");
             picAngin.Image = Ikon.Muat("wind");
             picHujan.Image = Ikon.Muat("raindrop");
             picUv.Image = Ikon.Muat("uv-index");
+            picUdara.Image = Ikon.Muat("smoke-particles");
+            btnFavorit.Font = new Font("Segoe UI Symbol", 12F);
+            foreach (var b in new[] { btnPerJam, btnHarian }) b.Font = new Font("Segoe UI", 8.25F);
+            new ToolTip().SetToolTip(btnFavorit, "Simpan atau hapus lokasi ini dari favorit");
+            MuatFavorit();
             picStatus.Visible = false;
             timerKartu.Tick += timerKartu_Tick;
             TampilkanKosong();
@@ -155,6 +165,7 @@ namespace Swasana
             isiOtomatis = false;
             tbLatitude.Text = lat.ToString("0.####", CultureInfo.InvariantCulture);
             tbLongitude.Text = lon.ToString("0.####", CultureInfo.InvariantCulture);
+            PerbaruiBintang();
         }
 
         // ===== Saran lokasi saat mengetik (autocomplete) =====
@@ -167,6 +178,7 @@ namespace Swasana
             if (isiOtomatis) return;
             tbLatitude.Text = "";
             tbLongitude.Text = "";
+            PerbaruiBintang();
             // Tunggu jeda mengetik 300 ms supaya tidak memanggil API di setiap huruf
             timerSaran.Stop();
             if (tbLokasi.Text.Trim().Length >= 2) timerSaran.Start(); else SembunyikanSaran();
@@ -267,11 +279,83 @@ namespace Swasana
                 Size = new Size(296, 40)
             };
             flowRekomendasi.Controls.Add(kosong);
-            flowJam.Controls.Add(new Label
+            TampilkanPrakiraan();
+        }
+
+        // ===== Lokasi favorit =====
+        private void MuatFavorit()
+        {
+            try { favorit = lokasiRepo.GetFavorites(user.UserId); }
+            catch (Exception) { favorit = new List<Location>(); }   // database lama tanpa kolom favorit: fitur diam saja
+
+            flowFavorit.SuspendLayout();
+            flowFavorit.Controls.Clear();
+            if (favorit.Count == 0)
             {
-                Text = "Prakiraan 8 jam ke depan muncul setelah cuaca dicek.",
-                ForeColor = Tema.Redup, Font = new Font("Segoe UI", 9.75F), AutoSize = false, Size = new Size(470, 40)
-            });
+                flowFavorit.Controls.Add(new Label
+                {
+                    Text = "Tekan ☆ untuk menyimpan lokasi favorit, lalu cek cuacanya sekali klik dari sini.",
+                    ForeColor = Tema.Redup, Font = new Font("Segoe UI", 9F), AutoSize = true, Margin = new Padding(0, 7, 0, 0)
+                });
+            }
+            foreach (var lok in favorit)
+            {
+                var chip = new Button
+                {
+                    Text = "★ " + lok.Name.Split(',')[0], AutoSize = true, Height = 28, Tag = lok,
+                    FlatStyle = FlatStyle.Flat, BackColor = Color.FromArgb(231, 241, 244), ForeColor = Tema.Langit,
+                    Font = new Font("Segoe UI", 9F), Cursor = Cursors.Hand, Margin = new Padding(0, 0, 6, 0)
+                };
+                chip.FlatAppearance.BorderSize = 0;
+                chip.Click += (s, e) =>
+                {
+                    var (lat, lon) = lok.getCoordinates();
+                    IsiLokasi(lok.Name, lat, lon);
+                    btnCek.PerformClick();
+                };
+                var menu = new ContextMenuStrip();
+                menu.Items.Add("Hapus dari favorit", null, (s, e) => UbahFavorit(lok, false));
+                chip.ContextMenuStrip = menu;
+                new ToolTip().SetToolTip(chip, lok.Name + "\nKlik kanan untuk menghapus dari favorit");
+                flowFavorit.Controls.Add(chip);
+            }
+            flowFavorit.ResumeLayout();
+            PerbaruiBintang();
+        }
+
+        private bool LokasiIniFavorit() =>
+            favorit.Any(f => f.Name.Equals(tbLokasi.Text.Trim(), StringComparison.OrdinalIgnoreCase));
+
+        private void PerbaruiBintang()
+        {
+            btnFavorit.Text = LokasiIniFavorit() ? "★" : "☆";
+        }
+
+        private void btnFavorit_Click(object sender, EventArgs e)
+        {
+            if (tbLokasi.Text.Trim().Length == 0 || !TryParseKoordinat(tbLatitude.Text, out var lat) || !TryParseKoordinat(tbLongitude.Text, out var lon)
+                || lat < -90 || lat > 90 || lon < -180 || lon > 180)
+            {
+                Pesan("Pilih lokasi dulu (dari saran, Lokasi saya, atau isi koordinat), baru simpan sebagai favorit.");
+                return;
+            }
+            var lokasi = new Location { Name = tbLokasi.Text.Trim() };
+            lokasi.setLocation(lat, lon);
+            UbahFavorit(lokasi, !LokasiIniFavorit());
+        }
+
+        private void UbahFavorit(Location lokasi, bool jadikanFavorit)
+        {
+            try
+            {
+                lokasiRepo.SetFavorite(user.UserId, lokasi, jadikanFavorit);
+                Pesan(jadikanFavorit ? $"{lokasi.Name} disimpan ke favorit." : $"{lokasi.Name} dihapus dari favorit.", error: false);
+                MuatFavorit();
+            }
+            catch (Exception ex)
+            {
+                Pesan("Favorit tidak bisa disimpan: " + ex.Message);
+            }
         }
 
         private void TampilkanHasil(string namaLokasi, WeatherData data)
@@ -295,10 +379,11 @@ namespace Swasana
             lblKelembapan.Text = $"{data.Humidity:0} %";
             lblAngin.Text = $"{data.WindSpeed:0.#} km/j";
             lblHujan.Text = $"{data.Rainfall:0.#} mm/j";
-            lblUv.Text = $"{data.UvIndex:0.#}";
-            lblUvJudul.Text = "UV " + KategoriUv(data.UvIndex);
+            lblUv.Text = $"{data.UvIndex:0.#} {KategoriUv(data.UvIndex)}";
+            lblUdara.Text = data.Aqi is int aqi ? $"{aqi} {KategoriAqi(aqi)}" : "-";
 
-            TampilkanPerJam(data.Hourly);
+            dataTerakhir = data;
+            TampilkanPrakiraan();
 
             // Kartu risiko ala peringatan dini, berputar 3D ke status baru
             Flip3D.Putar(pnlRisiko, () =>
@@ -308,11 +393,91 @@ namespace Swasana
                 picStatus.Image = Ikon.Status(data.RiskLevel);
                 picStatus.Visible = true;
                 lblStatus.Text = data.RiskLevel.ToString();
-                lblRincian.Text = string.Join("\n", riskEvaluator.rincian(data).Select(r => $"{r.Nama}: {r.Level}"));
+                lblRincian.Text = string.Join("\n", riskEvaluator.rincian(data).Select(r => $"{r.Nama} ({NilaiAturan(r.Nama, data)}): {r.Level}"));
             });
 
             TampilkanRekomendasi(data.RiskLevel);
             lblSumber.Text = $"Data cuaca Open-Meteo pukul {data.Timestamp:HH:mm} waktu setempat. Hasil ini sudah tersimpan ke riwayat.";
+        }
+
+        // Nilai yang dinilai tiap aturan, supaya alasan status terbaca jelas
+        private static string NilaiAturan(string nama, WeatherData d) => nama switch
+        {
+            "Suhu udara" => $"{d.Temperature:0.#}°C",
+            "Curah hujan" => $"{d.Rainfall:0.#} mm/j",
+            "Hujan + angin" => $"{d.Rainfall:0.#} mm/j, {d.WindSpeed:0.#} km/j",
+            "Indeks UV" => $"{d.UvIndex:0.#}",
+            "Heat index" => $"{HeatIndexRule.Hitung(d.Temperature, d.Humidity):0.#}°C",
+            "Kualitas udara" => d.Aqi is int a ? $"AQI {a}" : "tidak tersedia",
+            _ => "-"
+        };
+
+        private static string KategoriAqi(int aqi) => aqi switch
+        {
+            <= 50 => "baik",
+            <= 100 => "sedang",
+            <= 150 => "sensitif",
+            <= 200 => "buruk",
+            _ => "bahaya"
+        };
+
+        // ===== Prakiraan: per jam atau 7 hari =====
+        private void btnPerJam_Click(object sender, EventArgs e) { tampilHarian = false; TampilkanPrakiraan(); }
+        private void btnHarian_Click(object sender, EventArgs e) { tampilHarian = true; TampilkanPrakiraan(); }
+
+        private void TampilkanPrakiraan()
+        {
+            // Tombol yang aktif bergaya tombol utama
+            foreach (var (b, aktif) in new[] { (btnPerJam, !tampilHarian), (btnHarian, tampilHarian) })
+            {
+                b.BackColor = aktif ? Tema.Langit : Color.White;
+                b.ForeColor = aktif ? Color.White : Tema.Langit;
+                b.FlatAppearance.BorderSize = aktif ? 0 : 1;
+            }
+            if (dataTerakhir == null)
+            {
+                flowJam.Controls.Clear();
+                flowJam.Controls.Add(new Label
+                {
+                    Text = tampilHarian ? "Prakiraan 7 hari muncul setelah cuaca dicek." : "Prakiraan 8 jam ke depan muncul setelah cuaca dicek.",
+                    ForeColor = Tema.Redup, Font = new Font("Segoe UI", 9.75F), AutoSize = false, Size = new Size(470, 40)
+                });
+                return;
+            }
+            if (tampilHarian) TampilkanHarian(dataTerakhir.Daily); else TampilkanPerJam(dataTerakhir.Hourly);
+        }
+
+        private void TampilkanHarian(List<PrakiraanHari> hari)
+        {
+            var id = new CultureInfo("id-ID");
+            flowJam.SuspendLayout();
+            flowJam.Controls.Clear();
+            foreach (var (h, i) in hari.Take(7).Select((h, i) => (h, i)))
+            {
+                var item = new Panel { Size = new Size(67, 78), Margin = new Padding(1, 0, 1, 0) };
+                item.Controls.Add(new Label
+                {
+                    Text = i == 0 ? "Hari ini" : h.Tanggal.ToString("ddd d", id), Font = new Font("Segoe UI", 8.25F), ForeColor = Tema.Redup,
+                    AutoSize = false, Size = new Size(67, 15), Location = new Point(0, 0), TextAlign = ContentAlignment.MiddleCenter
+                });
+                item.Controls.Add(new PictureBox
+                {
+                    Image = Ikon.Muat(Ikon.NamaCuaca(h.KodeCuaca, true)), SizeMode = PictureBoxSizeMode.Zoom,
+                    Size = new Size(34, 34), Location = new Point(16, 15)
+                });
+                item.Controls.Add(new Label
+                {
+                    Text = $"{h.SuhuMaks:0}° / {h.SuhuMin:0}°", Font = new Font("Bahnschrift SemiBold", 9F), ForeColor = Tema.Tinta,
+                    AutoSize = false, Size = new Size(67, 16), Location = new Point(0, 48), TextAlign = ContentAlignment.MiddleCenter
+                });
+                item.Controls.Add(new Label
+                {
+                    Text = $"{h.PeluangHujan}%", Font = new Font("Segoe UI", 8.25F), ForeColor = Color.FromArgb(30, 100, 200),
+                    AutoSize = false, Size = new Size(67, 14), Location = new Point(0, 64), TextAlign = ContentAlignment.MiddleCenter
+                });
+                flowJam.Controls.Add(item);
+            }
+            flowJam.ResumeLayout();
         }
 
         private void TampilkanPerJam(List<PrakiraanJam> jam)

@@ -21,6 +21,7 @@ namespace Swasana
             lblJudul = new Label();
             lblLokasi = new Label();
             tbLokasi = new TextBox();
+            btnFavorit = new Button();
             btnLokasiSaya = new Button();
             lblLatitude = new Label();
             tbLatitude = new TextBox();
@@ -28,6 +29,7 @@ namespace Swasana
             tbLongitude = new TextBox();
             btnCek = new Button();
             lstSaran = new ListBox();
+            flowFavorit = new FlowLayoutPanel();
             lblPesan = new Label();
             pnlHero = new Panel();
             lblLokasiHasil = new Label();
@@ -37,6 +39,8 @@ namespace Swasana
             picCuaca = new PictureBox();
             pnlJam = new Panel();
             lblJamJudul = new Label();
+            btnPerJam = new Button();
+            btnHarian = new Button();
             flowJam = new FlowLayoutPanel();
             pnlKelembapan = new Panel();
             picKelembapan = new PictureBox();
@@ -54,6 +58,10 @@ namespace Swasana
             picUv = new PictureBox();
             lblUvJudul = new Label();
             lblUv = new Label();
+            pnlUdara = new Panel();
+            picUdara = new PictureBox();
+            lblUdaraJudul = new Label();
+            lblUdara = new Label();
             pnlRisiko = new Panel();
             picStatus = new PictureBox();
             lblRisikoJudul = new Label();
@@ -64,6 +72,7 @@ namespace Swasana
             lblSumber = new Label();
             btnKembali = new Button();
             pnlHeader.SuspendLayout();
+            flowFavorit.SuspendLayout();
             pnlHero.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picCuaca).BeginInit();
             pnlJam.SuspendLayout();
@@ -76,6 +85,8 @@ namespace Swasana
             ((System.ComponentModel.ISupportInitialize)picHujan).BeginInit();
             pnlUv.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picUv).BeginInit();
+            pnlUdara.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)picUdara).BeginInit();
             pnlRisiko.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)picStatus).BeginInit();
             flowRekomendasi.SuspendLayout();
@@ -116,12 +127,28 @@ namespace Swasana
             tbLokasi.BorderStyle = BorderStyle.FixedSingle;
             tbLokasi.Font = new Font("Segoe UI", 11F);
             tbLokasi.Location = new Point(24, 93);
-            tbLokasi.Size = new Size(300, 27);
+            tbLokasi.Size = new Size(262, 27);
             tbLokasi.PlaceholderText = "Ketik nama kota, misalnya Yogyakarta";
             tbLokasi.TextChanged += tbLokasi_TextChanged;
             tbLokasi.KeyDown += tbLokasi_KeyDown;
             tbLokasi.Name = "tbLokasi";
             tbLokasi.TabIndex = 3;
+            // 
+            // btnFavorit
+            // 
+            btnFavorit.BackColor = Color.White;
+            btnFavorit.Cursor = Cursors.Hand;
+            btnFavorit.FlatStyle = FlatStyle.Flat;
+            btnFavorit.Font = new Font("Segoe UI", 9.75F);
+            btnFavorit.ForeColor = Color.FromArgb(15, 76, 92);
+            btnFavorit.Location = new Point(292, 92);
+            btnFavorit.Size = new Size(32, 29);
+            btnFavorit.Text = "☆";
+            btnFavorit.UseVisualStyleBackColor = false;
+            btnFavorit.Click += btnFavorit_Click;
+            btnFavorit.FlatAppearance.BorderColor = Color.FromArgb(200, 212, 219);
+            btnFavorit.Name = "btnFavorit";
+            btnFavorit.TabIndex = 4;
             // 
             // btnLokasiSaya
             // 
@@ -137,7 +164,7 @@ namespace Swasana
             btnLokasiSaya.Click += btnLokasiSaya_Click;
             btnLokasiSaya.FlatAppearance.BorderColor = Color.FromArgb(200, 212, 219);
             btnLokasiSaya.Name = "btnLokasiSaya";
-            btnLokasiSaya.TabIndex = 4;
+            btnLokasiSaya.TabIndex = 5;
             // 
             // lblLatitude
             // 
@@ -147,7 +174,7 @@ namespace Swasana
             lblLatitude.Text = "Latitude";
             lblLatitude.AutoSize = true;
             lblLatitude.Name = "lblLatitude";
-            lblLatitude.TabIndex = 5;
+            lblLatitude.TabIndex = 6;
             // 
             // tbLatitude
             // 
@@ -156,7 +183,7 @@ namespace Swasana
             tbLatitude.Location = new Point(24, 147);
             tbLatitude.Size = new Size(110, 27);
             tbLatitude.Name = "tbLatitude";
-            tbLatitude.TabIndex = 6;
+            tbLatitude.TabIndex = 7;
             // 
             // lblLongitude
             // 
@@ -166,7 +193,7 @@ namespace Swasana
             lblLongitude.Text = "Longitude";
             lblLongitude.AutoSize = true;
             lblLongitude.Name = "lblLongitude";
-            lblLongitude.TabIndex = 7;
+            lblLongitude.TabIndex = 8;
             // 
             // tbLongitude
             // 
@@ -175,7 +202,7 @@ namespace Swasana
             tbLongitude.Location = new Point(144, 147);
             tbLongitude.Size = new Size(110, 27);
             tbLongitude.Name = "tbLongitude";
-            tbLongitude.TabIndex = 8;
+            tbLongitude.TabIndex = 9;
             // 
             // btnCek
             // 
@@ -191,7 +218,7 @@ namespace Swasana
             btnCek.Click += btnCek_Click;
             btnCek.FlatAppearance.BorderSize = 0;
             btnCek.Name = "btnCek";
-            btnCek.TabIndex = 9;
+            btnCek.TabIndex = 10;
             // 
             // lstSaran
             // 
@@ -207,18 +234,26 @@ namespace Swasana
             lstSaran.MouseClick += lstSaran_MouseClick;
             lstSaran.KeyDown += lstSaran_KeyDown;
             lstSaran.Name = "lstSaran";
-            lstSaran.TabIndex = 10;
+            lstSaran.TabIndex = 11;
+            // 
+            // flowFavorit
+            // 
+            flowFavorit.Location = new Point(24, 182);
+            flowFavorit.Size = new Size(500, 30);
+            flowFavorit.WrapContents = false;
+            flowFavorit.Name = "flowFavorit";
+            flowFavorit.TabIndex = 12;
             // 
             // lblPesan
             // 
             lblPesan.Font = new Font("Segoe UI", 9.75F);
             lblPesan.ForeColor = Color.FromArgb(198, 40, 40);
-            lblPesan.Location = new Point(24, 180);
+            lblPesan.Location = new Point(24, 216);
             lblPesan.Text = "";
             lblPesan.AutoSize = false;
             lblPesan.Size = new Size(500, 20);
             lblPesan.Name = "lblPesan";
-            lblPesan.TabIndex = 11;
+            lblPesan.TabIndex = 13;
             // 
             // pnlHero
             // 
@@ -228,11 +263,11 @@ namespace Swasana
             pnlHero.Controls.Add(lblSuhu);
             pnlHero.Controls.Add(lblLokasiHasil);
             pnlHero.BackColor = Color.FromArgb(15, 76, 92);
-            pnlHero.Location = new Point(24, 204);
+            pnlHero.Location = new Point(24, 240);
             pnlHero.Size = new Size(500, 176);
             pnlHero.Paint += pnlHero_Paint;
             pnlHero.Name = "pnlHero";
-            pnlHero.TabIndex = 12;
+            pnlHero.TabIndex = 14;
             // 
             // lblLokasiHasil
             // 
@@ -244,7 +279,7 @@ namespace Swasana
             lblLokasiHasil.Size = new Size(320, 24);
             lblLokasiHasil.BackColor = Color.Transparent;
             lblLokasiHasil.Name = "lblLokasiHasil";
-            lblLokasiHasil.TabIndex = 13;
+            lblLokasiHasil.TabIndex = 15;
             // 
             // lblSuhu
             // 
@@ -255,7 +290,7 @@ namespace Swasana
             lblSuhu.AutoSize = true;
             lblSuhu.BackColor = Color.Transparent;
             lblSuhu.Name = "lblSuhu";
-            lblSuhu.TabIndex = 14;
+            lblSuhu.TabIndex = 16;
             // 
             // lblKondisi
             // 
@@ -267,7 +302,7 @@ namespace Swasana
             lblKondisi.Size = new Size(320, 22);
             lblKondisi.BackColor = Color.Transparent;
             lblKondisi.Name = "lblKondisi";
-            lblKondisi.TabIndex = 15;
+            lblKondisi.TabIndex = 17;
             // 
             // lblTerasa
             // 
@@ -279,7 +314,7 @@ namespace Swasana
             lblTerasa.Size = new Size(320, 20);
             lblTerasa.BackColor = Color.Transparent;
             lblTerasa.Name = "lblTerasa";
-            lblTerasa.TabIndex = 16;
+            lblTerasa.TabIndex = 18;
             // 
             // picCuaca
             // 
@@ -293,23 +328,57 @@ namespace Swasana
             // pnlJam
             // 
             pnlJam.Controls.Add(flowJam);
+            pnlJam.Controls.Add(btnHarian);
+            pnlJam.Controls.Add(btnPerJam);
             pnlJam.Controls.Add(lblJamJudul);
             pnlJam.BackColor = Color.White;
             pnlJam.BorderStyle = BorderStyle.FixedSingle;
-            pnlJam.Location = new Point(24, 390);
+            pnlJam.Location = new Point(24, 426);
             pnlJam.Size = new Size(500, 112);
             pnlJam.Name = "pnlJam";
-            pnlJam.TabIndex = 17;
+            pnlJam.TabIndex = 19;
             // 
             // lblJamJudul
             // 
             lblJamJudul.Font = new Font("Segoe UI Semibold", 9F);
             lblJamJudul.ForeColor = Color.FromArgb(94, 110, 122);
             lblJamJudul.Location = new Point(10, 6);
-            lblJamJudul.Text = "Prakiraan per jam";
+            lblJamJudul.Text = "Prakiraan";
             lblJamJudul.AutoSize = true;
             lblJamJudul.Name = "lblJamJudul";
-            lblJamJudul.TabIndex = 18;
+            lblJamJudul.TabIndex = 20;
+            // 
+            // btnPerJam
+            // 
+            btnPerJam.BackColor = Color.FromArgb(15, 76, 92);
+            btnPerJam.Cursor = Cursors.Hand;
+            btnPerJam.FlatStyle = FlatStyle.Flat;
+            btnPerJam.Font = new Font("Segoe UI Semibold", 10F);
+            btnPerJam.ForeColor = Color.White;
+            btnPerJam.Location = new Point(334, 3);
+            btnPerJam.Size = new Size(76, 22);
+            btnPerJam.Text = "Per jam";
+            btnPerJam.UseVisualStyleBackColor = false;
+            btnPerJam.Click += btnPerJam_Click;
+            btnPerJam.FlatAppearance.BorderSize = 0;
+            btnPerJam.Name = "btnPerJam";
+            btnPerJam.TabIndex = 21;
+            // 
+            // btnHarian
+            // 
+            btnHarian.BackColor = Color.White;
+            btnHarian.Cursor = Cursors.Hand;
+            btnHarian.FlatStyle = FlatStyle.Flat;
+            btnHarian.Font = new Font("Segoe UI", 9.75F);
+            btnHarian.ForeColor = Color.FromArgb(15, 76, 92);
+            btnHarian.Location = new Point(412, 3);
+            btnHarian.Size = new Size(76, 22);
+            btnHarian.Text = "7 hari";
+            btnHarian.UseVisualStyleBackColor = false;
+            btnHarian.Click += btnHarian_Click;
+            btnHarian.FlatAppearance.BorderColor = Color.FromArgb(200, 212, 219);
+            btnHarian.Name = "btnHarian";
+            btnHarian.TabIndex = 22;
             // 
             // flowJam
             // 
@@ -317,7 +386,7 @@ namespace Swasana
             flowJam.Size = new Size(486, 82);
             flowJam.WrapContents = false;
             flowJam.Name = "flowJam";
-            flowJam.TabIndex = 19;
+            flowJam.TabIndex = 23;
             // 
             // pnlKelembapan
             // 
@@ -326,39 +395,39 @@ namespace Swasana
             pnlKelembapan.Controls.Add(picKelembapan);
             pnlKelembapan.BackColor = Color.White;
             pnlKelembapan.BorderStyle = BorderStyle.FixedSingle;
-            pnlKelembapan.Location = new Point(24, 512);
-            pnlKelembapan.Size = new Size(116, 62);
+            pnlKelembapan.Location = new Point(24, 548);
+            pnlKelembapan.Size = new Size(92, 62);
             pnlKelembapan.Name = "pnlKelembapan";
-            pnlKelembapan.TabIndex = 20;
+            pnlKelembapan.TabIndex = 24;
             // 
             // picKelembapan
             // 
             picKelembapan.BackColor = Color.Transparent;
-            picKelembapan.Location = new Point(4, 13);
-            picKelembapan.Size = new Size(34, 34);
+            picKelembapan.Location = new Point(4, 5);
+            picKelembapan.Size = new Size(20, 20);
             picKelembapan.SizeMode = PictureBoxSizeMode.Zoom;
             picKelembapan.Name = "picKelembapan";
             picKelembapan.TabStop = false;
             // 
             // lblKelembapanJudul
             // 
-            lblKelembapanJudul.Font = new Font("Segoe UI", 9F);
+            lblKelembapanJudul.Font = new Font("Segoe UI", 8.25F);
             lblKelembapanJudul.ForeColor = Color.FromArgb(94, 110, 122);
-            lblKelembapanJudul.Location = new Point(40, 8);
+            lblKelembapanJudul.Location = new Point(25, 7);
             lblKelembapanJudul.Text = "Kelembapan";
             lblKelembapanJudul.AutoSize = true;
             lblKelembapanJudul.Name = "lblKelembapanJudul";
-            lblKelembapanJudul.TabIndex = 21;
+            lblKelembapanJudul.TabIndex = 25;
             // 
             // lblKelembapan
             // 
-            lblKelembapan.Font = new Font("Bahnschrift SemiBold", 12F);
+            lblKelembapan.Font = new Font("Bahnschrift SemiBold", 11F);
             lblKelembapan.ForeColor = Color.FromArgb(28, 43, 54);
-            lblKelembapan.Location = new Point(39, 27);
+            lblKelembapan.Location = new Point(5, 31);
             lblKelembapan.Text = "-";
             lblKelembapan.AutoSize = true;
             lblKelembapan.Name = "lblKelembapan";
-            lblKelembapan.TabIndex = 22;
+            lblKelembapan.TabIndex = 26;
             // 
             // pnlAngin
             // 
@@ -367,39 +436,39 @@ namespace Swasana
             pnlAngin.Controls.Add(picAngin);
             pnlAngin.BackColor = Color.White;
             pnlAngin.BorderStyle = BorderStyle.FixedSingle;
-            pnlAngin.Location = new Point(152, 512);
-            pnlAngin.Size = new Size(116, 62);
+            pnlAngin.Location = new Point(126, 548);
+            pnlAngin.Size = new Size(92, 62);
             pnlAngin.Name = "pnlAngin";
-            pnlAngin.TabIndex = 23;
+            pnlAngin.TabIndex = 27;
             // 
             // picAngin
             // 
             picAngin.BackColor = Color.Transparent;
-            picAngin.Location = new Point(4, 13);
-            picAngin.Size = new Size(34, 34);
+            picAngin.Location = new Point(4, 5);
+            picAngin.Size = new Size(20, 20);
             picAngin.SizeMode = PictureBoxSizeMode.Zoom;
             picAngin.Name = "picAngin";
             picAngin.TabStop = false;
             // 
             // lblAnginJudul
             // 
-            lblAnginJudul.Font = new Font("Segoe UI", 9F);
+            lblAnginJudul.Font = new Font("Segoe UI", 8.25F);
             lblAnginJudul.ForeColor = Color.FromArgb(94, 110, 122);
-            lblAnginJudul.Location = new Point(40, 8);
+            lblAnginJudul.Location = new Point(25, 7);
             lblAnginJudul.Text = "Angin";
             lblAnginJudul.AutoSize = true;
             lblAnginJudul.Name = "lblAnginJudul";
-            lblAnginJudul.TabIndex = 24;
+            lblAnginJudul.TabIndex = 28;
             // 
             // lblAngin
             // 
-            lblAngin.Font = new Font("Bahnschrift SemiBold", 12F);
+            lblAngin.Font = new Font("Bahnschrift SemiBold", 11F);
             lblAngin.ForeColor = Color.FromArgb(28, 43, 54);
-            lblAngin.Location = new Point(39, 27);
+            lblAngin.Location = new Point(5, 31);
             lblAngin.Text = "-";
             lblAngin.AutoSize = true;
             lblAngin.Name = "lblAngin";
-            lblAngin.TabIndex = 25;
+            lblAngin.TabIndex = 29;
             // 
             // pnlHujan
             // 
@@ -408,39 +477,39 @@ namespace Swasana
             pnlHujan.Controls.Add(picHujan);
             pnlHujan.BackColor = Color.White;
             pnlHujan.BorderStyle = BorderStyle.FixedSingle;
-            pnlHujan.Location = new Point(280, 512);
-            pnlHujan.Size = new Size(116, 62);
+            pnlHujan.Location = new Point(228, 548);
+            pnlHujan.Size = new Size(92, 62);
             pnlHujan.Name = "pnlHujan";
-            pnlHujan.TabIndex = 26;
+            pnlHujan.TabIndex = 30;
             // 
             // picHujan
             // 
             picHujan.BackColor = Color.Transparent;
-            picHujan.Location = new Point(4, 13);
-            picHujan.Size = new Size(34, 34);
+            picHujan.Location = new Point(4, 5);
+            picHujan.Size = new Size(20, 20);
             picHujan.SizeMode = PictureBoxSizeMode.Zoom;
             picHujan.Name = "picHujan";
             picHujan.TabStop = false;
             // 
             // lblHujanJudul
             // 
-            lblHujanJudul.Font = new Font("Segoe UI", 9F);
+            lblHujanJudul.Font = new Font("Segoe UI", 8.25F);
             lblHujanJudul.ForeColor = Color.FromArgb(94, 110, 122);
-            lblHujanJudul.Location = new Point(40, 8);
-            lblHujanJudul.Text = "Curah hujan";
+            lblHujanJudul.Location = new Point(25, 7);
+            lblHujanJudul.Text = "Hujan";
             lblHujanJudul.AutoSize = true;
             lblHujanJudul.Name = "lblHujanJudul";
-            lblHujanJudul.TabIndex = 27;
+            lblHujanJudul.TabIndex = 31;
             // 
             // lblHujan
             // 
-            lblHujan.Font = new Font("Bahnschrift SemiBold", 12F);
+            lblHujan.Font = new Font("Bahnschrift SemiBold", 11F);
             lblHujan.ForeColor = Color.FromArgb(28, 43, 54);
-            lblHujan.Location = new Point(39, 27);
+            lblHujan.Location = new Point(5, 31);
             lblHujan.Text = "-";
             lblHujan.AutoSize = true;
             lblHujan.Name = "lblHujan";
-            lblHujan.TabIndex = 28;
+            lblHujan.TabIndex = 32;
             // 
             // pnlUv
             // 
@@ -449,39 +518,80 @@ namespace Swasana
             pnlUv.Controls.Add(picUv);
             pnlUv.BackColor = Color.White;
             pnlUv.BorderStyle = BorderStyle.FixedSingle;
-            pnlUv.Location = new Point(408, 512);
-            pnlUv.Size = new Size(116, 62);
+            pnlUv.Location = new Point(330, 548);
+            pnlUv.Size = new Size(92, 62);
             pnlUv.Name = "pnlUv";
-            pnlUv.TabIndex = 29;
+            pnlUv.TabIndex = 33;
             // 
             // picUv
             // 
             picUv.BackColor = Color.Transparent;
-            picUv.Location = new Point(4, 13);
-            picUv.Size = new Size(34, 34);
+            picUv.Location = new Point(4, 5);
+            picUv.Size = new Size(20, 20);
             picUv.SizeMode = PictureBoxSizeMode.Zoom;
             picUv.Name = "picUv";
             picUv.TabStop = false;
             // 
             // lblUvJudul
             // 
-            lblUvJudul.Font = new Font("Segoe UI", 9F);
+            lblUvJudul.Font = new Font("Segoe UI", 8.25F);
             lblUvJudul.ForeColor = Color.FromArgb(94, 110, 122);
-            lblUvJudul.Location = new Point(40, 8);
+            lblUvJudul.Location = new Point(25, 7);
             lblUvJudul.Text = "Indeks UV";
             lblUvJudul.AutoSize = true;
             lblUvJudul.Name = "lblUvJudul";
-            lblUvJudul.TabIndex = 30;
+            lblUvJudul.TabIndex = 34;
             // 
             // lblUv
             // 
-            lblUv.Font = new Font("Bahnschrift SemiBold", 12F);
+            lblUv.Font = new Font("Bahnschrift SemiBold", 11F);
             lblUv.ForeColor = Color.FromArgb(28, 43, 54);
-            lblUv.Location = new Point(39, 27);
+            lblUv.Location = new Point(5, 31);
             lblUv.Text = "-";
             lblUv.AutoSize = true;
             lblUv.Name = "lblUv";
-            lblUv.TabIndex = 31;
+            lblUv.TabIndex = 35;
+            // 
+            // pnlUdara
+            // 
+            pnlUdara.Controls.Add(lblUdara);
+            pnlUdara.Controls.Add(lblUdaraJudul);
+            pnlUdara.Controls.Add(picUdara);
+            pnlUdara.BackColor = Color.White;
+            pnlUdara.BorderStyle = BorderStyle.FixedSingle;
+            pnlUdara.Location = new Point(432, 548);
+            pnlUdara.Size = new Size(92, 62);
+            pnlUdara.Name = "pnlUdara";
+            pnlUdara.TabIndex = 36;
+            // 
+            // picUdara
+            // 
+            picUdara.BackColor = Color.Transparent;
+            picUdara.Location = new Point(4, 5);
+            picUdara.Size = new Size(20, 20);
+            picUdara.SizeMode = PictureBoxSizeMode.Zoom;
+            picUdara.Name = "picUdara";
+            picUdara.TabStop = false;
+            // 
+            // lblUdaraJudul
+            // 
+            lblUdaraJudul.Font = new Font("Segoe UI", 8.25F);
+            lblUdaraJudul.ForeColor = Color.FromArgb(94, 110, 122);
+            lblUdaraJudul.Location = new Point(25, 7);
+            lblUdaraJudul.Text = "Udara (AQI)";
+            lblUdaraJudul.AutoSize = true;
+            lblUdaraJudul.Name = "lblUdaraJudul";
+            lblUdaraJudul.TabIndex = 37;
+            // 
+            // lblUdara
+            // 
+            lblUdara.Font = new Font("Bahnschrift SemiBold", 11F);
+            lblUdara.ForeColor = Color.FromArgb(28, 43, 54);
+            lblUdara.Location = new Point(5, 31);
+            lblUdara.Text = "-";
+            lblUdara.AutoSize = true;
+            lblUdara.Name = "lblUdara";
+            lblUdara.TabIndex = 38;
             // 
             // pnlRisiko
             // 
@@ -491,9 +601,9 @@ namespace Swasana
             pnlRisiko.Controls.Add(picStatus);
             pnlRisiko.BackColor = Color.FromArgb(214, 223, 229);
             pnlRisiko.Location = new Point(544, 72);
-            pnlRisiko.Size = new Size(312, 150);
+            pnlRisiko.Size = new Size(312, 196);
             pnlRisiko.Name = "pnlRisiko";
-            pnlRisiko.TabIndex = 32;
+            pnlRisiko.TabIndex = 39;
             // 
             // picStatus
             // 
@@ -513,7 +623,7 @@ namespace Swasana
             lblRisikoJudul.AutoSize = true;
             lblRisikoJudul.BackColor = Color.Transparent;
             lblRisikoJudul.Name = "lblRisikoJudul";
-            lblRisikoJudul.TabIndex = 33;
+            lblRisikoJudul.TabIndex = 40;
             // 
             // lblStatus
             // 
@@ -524,7 +634,7 @@ namespace Swasana
             lblStatus.AutoSize = true;
             lblStatus.BackColor = Color.Transparent;
             lblStatus.Name = "lblStatus";
-            lblStatus.TabIndex = 34;
+            lblStatus.TabIndex = 41;
             // 
             // lblRincian
             // 
@@ -533,41 +643,41 @@ namespace Swasana
             lblRincian.Location = new Point(14, 76);
             lblRincian.Text = "Status muncul setelah cuaca dicek.";
             lblRincian.AutoSize = false;
-            lblRincian.Size = new Size(286, 64);
+            lblRincian.Size = new Size(286, 112);
             lblRincian.BackColor = Color.Transparent;
             lblRincian.Name = "lblRincian";
-            lblRincian.TabIndex = 35;
+            lblRincian.TabIndex = 42;
             // 
             // lblRekomendasiJudul
             // 
             lblRekomendasiJudul.Font = new Font("Segoe UI Semibold", 9.75F);
             lblRekomendasiJudul.ForeColor = Color.FromArgb(28, 43, 54);
-            lblRekomendasiJudul.Location = new Point(544, 234);
+            lblRekomendasiJudul.Location = new Point(544, 280);
             lblRekomendasiJudul.Text = "Yang sebaiknya dilakukan";
             lblRekomendasiJudul.AutoSize = true;
             lblRekomendasiJudul.Name = "lblRekomendasiJudul";
-            lblRekomendasiJudul.TabIndex = 36;
+            lblRekomendasiJudul.TabIndex = 43;
             // 
             // flowRekomendasi
             // 
             flowRekomendasi.AutoScroll = true;
             flowRekomendasi.FlowDirection = FlowDirection.TopDown;
-            flowRekomendasi.Location = new Point(544, 256);
-            flowRekomendasi.Size = new Size(316, 318);
+            flowRekomendasi.Location = new Point(544, 302);
+            flowRekomendasi.Size = new Size(316, 308);
             flowRekomendasi.WrapContents = false;
             flowRekomendasi.Name = "flowRekomendasi";
-            flowRekomendasi.TabIndex = 37;
+            flowRekomendasi.TabIndex = 44;
             // 
             // lblSumber
             // 
             lblSumber.Font = new Font("Segoe UI", 9F);
             lblSumber.ForeColor = Color.FromArgb(94, 110, 122);
-            lblSumber.Location = new Point(24, 592);
+            lblSumber.Location = new Point(24, 628);
             lblSumber.Text = "Data cuaca dari Open-Meteo";
             lblSumber.AutoSize = false;
             lblSumber.Size = new Size(700, 18);
             lblSumber.Name = "lblSumber";
-            lblSumber.TabIndex = 38;
+            lblSumber.TabIndex = 45;
             // 
             // btnKembali
             // 
@@ -576,14 +686,14 @@ namespace Swasana
             btnKembali.FlatStyle = FlatStyle.Flat;
             btnKembali.Font = new Font("Segoe UI", 9.75F);
             btnKembali.ForeColor = Color.FromArgb(15, 76, 92);
-            btnKembali.Location = new Point(756, 586);
+            btnKembali.Location = new Point(756, 622);
             btnKembali.Size = new Size(100, 32);
             btnKembali.Text = "Kembali";
             btnKembali.UseVisualStyleBackColor = false;
             btnKembali.Click += btnKembali_Click;
             btnKembali.FlatAppearance.BorderColor = Color.FromArgb(200, 212, 219);
             btnKembali.Name = "btnKembali";
-            btnKembali.TabIndex = 39;
+            btnKembali.TabIndex = 46;
             // 
             // FormCekCuaca
             // 
@@ -591,12 +701,13 @@ namespace Swasana
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(243, 246, 248);
-            ClientSize = new Size(880, 632);
+            ClientSize = new Size(880, 668);
             Controls.Add(btnKembali);
             Controls.Add(lblSumber);
             Controls.Add(flowRekomendasi);
             Controls.Add(lblRekomendasiJudul);
             Controls.Add(pnlRisiko);
+            Controls.Add(pnlUdara);
             Controls.Add(pnlUv);
             Controls.Add(pnlHujan);
             Controls.Add(pnlAngin);
@@ -604,6 +715,7 @@ namespace Swasana
             Controls.Add(pnlJam);
             Controls.Add(pnlHero);
             Controls.Add(lblPesan);
+            Controls.Add(flowFavorit);
             Controls.Add(lstSaran);
             Controls.Add(btnCek);
             Controls.Add(tbLongitude);
@@ -611,6 +723,7 @@ namespace Swasana
             Controls.Add(tbLatitude);
             Controls.Add(lblLatitude);
             Controls.Add(btnLokasiSaya);
+            Controls.Add(btnFavorit);
             Controls.Add(tbLokasi);
             Controls.Add(lblLokasi);
             Controls.Add(pnlHeader);
@@ -621,6 +734,8 @@ namespace Swasana
             Text = "SWASANA - Cek cuaca";
             pnlHeader.ResumeLayout(false);
             pnlHeader.PerformLayout();
+            flowFavorit.ResumeLayout(false);
+            flowFavorit.PerformLayout();
             pnlHero.ResumeLayout(false);
             pnlHero.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)picCuaca).EndInit();
@@ -640,6 +755,9 @@ namespace Swasana
             pnlUv.ResumeLayout(false);
             pnlUv.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)picUv).EndInit();
+            pnlUdara.ResumeLayout(false);
+            pnlUdara.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)picUdara).EndInit();
             pnlRisiko.ResumeLayout(false);
             pnlRisiko.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)picStatus).EndInit();
@@ -655,6 +773,7 @@ namespace Swasana
         private Label lblJudul;
         private Label lblLokasi;
         private TextBox tbLokasi;
+        private Button btnFavorit;
         private Button btnLokasiSaya;
         private Label lblLatitude;
         private TextBox tbLatitude;
@@ -662,6 +781,7 @@ namespace Swasana
         private TextBox tbLongitude;
         private Button btnCek;
         private ListBox lstSaran;
+        private FlowLayoutPanel flowFavorit;
         private Label lblPesan;
         private Panel pnlHero;
         private Label lblLokasiHasil;
@@ -671,6 +791,8 @@ namespace Swasana
         private PictureBox picCuaca;
         private Panel pnlJam;
         private Label lblJamJudul;
+        private Button btnPerJam;
+        private Button btnHarian;
         private FlowLayoutPanel flowJam;
         private Panel pnlKelembapan;
         private PictureBox picKelembapan;
@@ -688,6 +810,10 @@ namespace Swasana
         private PictureBox picUv;
         private Label lblUvJudul;
         private Label lblUv;
+        private Panel pnlUdara;
+        private PictureBox picUdara;
+        private Label lblUdaraJudul;
+        private Label lblUdara;
         private Panel pnlRisiko;
         private PictureBox picStatus;
         private Label lblRisikoJudul;

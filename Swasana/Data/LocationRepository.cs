@@ -37,6 +37,30 @@ public class LocationRepository : BaseRepository<Location>
         return MapRows(ds);
     }
 
+    // ===== Lokasi favorit =====
+    public List<Location> GetFavorites(int userId)
+    {
+        var ds = Context.executeQuery(
+            "SELECT * FROM locations WHERE user_id = @userId AND is_favorite ORDER BY city_name",
+            new NpgsqlParameter("userId", userId));
+        return MapRows(ds);
+    }
+
+    // Tandai / lepas favorit; lokasi dibuat dulu kalau belum pernah disimpan
+    public void SetFavorite(int userId, Location location, bool favorit)
+    {
+        var saved = FindByUserAndCity(userId, location.Name);
+        if (saved == null)
+        {
+            location.UserId = userId;
+            saved = Insert(location);
+        }
+        Context.executeNonQuery(
+            "UPDATE locations SET is_favorite = @fav WHERE location_id = @id",
+            new NpgsqlParameter("fav", favorit),
+            new NpgsqlParameter("id", saved.LocationId));
+    }
+
     public Location? FindByUserAndCity(int userId, string cityName)
     {
         var ds = Context.executeQuery(

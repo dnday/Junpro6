@@ -45,6 +45,13 @@ public static class DatabaseSetup
             }
         }
 
+        EnsureSchema(connectionString);
+    }
+
+    // Jalankan skema (tabel, kolom baru, seed). Aman diulang, dipanggil juga setiap aplikasi dibuka
+    // supaya database dari versi lama otomatis mendapat kolom/tabel baru.
+    public static void EnsureSchema(string connectionString)
+    {
         using var db = new NpgsqlConnection(connectionString);
         db.Open();
         using var schema = new NpgsqlCommand(ReadSchema(), db);

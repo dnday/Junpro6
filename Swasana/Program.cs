@@ -18,6 +18,9 @@ static class Program
             connectionString = setup.ConnectionString;
         }
 
+        // Perbarui skema database lama (misalnya kolom favorit). Kalau gagal, form login yang memberi tahu.
+        try { DatabaseSetup.EnsureSchema(connectionString); } catch { }
+
         var db = new DatabaseContext(connectionString);
         using var login = new FormLogin(db);
         if (login.ShowDialog() != DialogResult.OK || login.User == null) return;

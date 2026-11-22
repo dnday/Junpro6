@@ -17,6 +17,9 @@ CREATE TABLE IF NOT EXISTS locations (
     longitude DECIMAL(9,6) NOT NULL CHECK (longitude BETWEEN -180 AND 180)
 );
 
+-- Lokasi favorit pengguna (ditambahkan untuk fitur favorit; aman untuk database lama)
+ALTER TABLE locations ADD COLUMN IF NOT EXISTS is_favorite BOOLEAN NOT NULL DEFAULT FALSE;
+
 CREATE TABLE IF NOT EXISTS risk_levels (
     risk_id SMALLSERIAL PRIMARY KEY,
     level_name VARCHAR(20) NOT NULL UNIQUE,
