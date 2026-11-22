@@ -18,7 +18,7 @@ namespace Swasana
             Animasi.Hover(btnClose, Color.FromArgb(231, 241, 244));
         }
 
-        private void btnLogin_Click(object sender, EventArgs e)
+        private async void btnLogin_Click(object sender, EventArgs e)
         {
             var username = tbUsername.Text.Trim();
             if (username.Length == 0)
@@ -30,11 +30,26 @@ namespace Swasana
 
             lblPesan.Text = "";
             Cursor = Cursors.WaitCursor;
+            btnLogin.Enabled = false;
             try
             {
                 // ponytail: login cukup username (tabel users belum punya kolom password)
                 var users = new UserRepository(Db);
-                User = users.FindByUsername(username) ?? users.Insert(new User { Username = username });
+                var ditemukan = await Task.Run(() => users.FindByUsername(username));
+                if (ditemukan == null)
+                {
+                    var jawaban = MessageBox.Show(this,
+                        $"Username \"{username}\" belum terdaftar. Buat akun baru dengan username ini?",
+                        "Akun baru", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (jawaban != DialogResult.Yes)
+                    {
+                        tbUsername.Focus();
+                        tbUsername.SelectAll();
+                        return;
+                    }
+                    ditemukan = await Task.Run(() => users.Insert(new User { Username = username }));
+                }
+                User = ditemukan;
                 DialogResult = DialogResult.OK;
             }
             catch (Exception ex)
@@ -44,6 +59,7 @@ namespace Swasana
             finally
             {
                 Cursor = Cursors.Default;
+                btnLogin.Enabled = true;
             }
         }
 
