@@ -27,11 +27,6 @@ namespace Swasana
         private double faseJalan, faseLangkah, kecepatanX;
         private float orangX = 272, arah = 1;
 
-        // Posisi matahari/bulan di lintasannya: 0 = terbit/terbenam, 1 = terbenam/terbit berikutnya
-        private double? fraksiLintasan;
-        private bool lintasanSiang = true;
-        private float kilatMulai = -1000;   // waktu kilatan terakhir (satuan t)
-
         // Siluet terang supaya terlihat di semua warna langit (langit selalu cukup gelap untuk teks putih)
         private static readonly Color Siluet = Color.FromArgb(235, 244, 248, 252);
 
@@ -63,30 +58,6 @@ namespace Swasana
             for (int i = 0; i < 9; i++)
                 daun.Add((acak.Next(area.Width), 20 + acak.Next(area.Height - 40), (float)(acak.NextDouble() * Math.PI * 2)));
         }
-
-        // Waktu setempat dan jam matahari terbit/terbenam dari Open-Meteo -> posisi matahari atau bulan
-        public void AturWaktu(DateTime sekarang, DateTime? terbit, DateTime? terbenam)
-        {
-            fraksiLintasan = HitungLintasan(sekarang, terbit, terbenam, out lintasanSiang);
-        }
-
-        public static double? HitungLintasan(DateTime sekarang, DateTime? terbit, DateTime? terbenam, out bool siang)
-        {
-            siang = true;
-            if (terbit is not DateTime naik || terbenam is not DateTime turun || turun <= naik) return null;
-            if (sekarang >= naik && sekarang <= turun)
-                return (sekarang - naik) / (turun - naik);
-            siang = false;
-            // Malam: dari terbenam sampai terbit berikutnya (atau dari terbenam kemarin sampai terbit hari ini)
-            var (awal, akhir) = sekarang > turun ? (turun, naik.AddDays(1)) : (turun.AddDays(-1), naik);
-            return Math.Clamp((sekarang - awal) / (akhir - awal), 0, 1);
-        }
-
-        // Fajar/senja: 12% awal dan akhir siang hari
-        public bool Senja => lintasanSiang && fraksiLintasan is double f && (f < 0.12 || f > 0.88);
-
-        // Kilatan putih sesaat di seluruh panel (badai atau status Bahaya)
-        public void Kilat() => kilatMulai = t;
 
         // dt = detik sejak frame sebelumnya; semua gerak dikalikan dt supaya kecepatannya stabil
         public void Tick(Size area, double dt)
@@ -124,7 +95,6 @@ namespace Swasana
             if (jenis == Jenis.Kosong) return;
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
-            GambarLintasan(g);
             if (jenis is Jenis.Berawan or Jenis.Hujan or Jenis.Badai) GambarAwan(g, area);
 
             switch (jenis)
@@ -142,45 +112,6 @@ namespace Swasana
             GambarOrang(g, area);
 
             if (jenis == Jenis.Badai) GambarPetir(g, area);
-
-            // Kilatan: terang lalu berkedip dua kali dan memudar (~0,4 detik)
-            var d = t - kilatMulai;
-            if (d is >= 0 and < 12)
-            {
-                var kedip = d < 3 || d is > 5 and < 8 ? 1f : 0.35f;
-                using var kilat = new SolidBrush(Color.FromArgb((int)(170 * (1 - d / 12) * kedip), 255, 255, 255));
-                g.FillRectangle(kilat, 0, 0, area.Width, area.Height);
-            }
-        }
-
-        // Lintasan busur matahari (siang) atau bulan (malam) di antara teks dan ikon cuaca
-        private void GambarLintasan(Graphics g)
-        {
-            if (fraksiLintasan is not double f) return;
-            const float x0 = 200, x1 = 340, horison = 80, puncak = 22;
-            PointF Titik(double p) => new((float)(x0 + (x1 - x0) * p), (float)(horison - (horison - puncak) * Math.Sin(Math.PI * p)));
-
-            using (var garis = new Pen(Color.FromArgb(55, 255, 255, 255), 1.2f) { DashPattern = new[] { 2f, 4f } })
-                g.DrawLines(garis, Enumerable.Range(0, 25).Select(i => Titik(i / 24.0)).ToArray());
-
-            var pos = Titik(f);
-            var tertutup = jenis is Jenis.Berawan or Jenis.Hujan or Jenis.Badai or Jenis.Kabut;   // di balik awan: lebih redup
-            var warna = lintasanSiang ? Color.FromArgb(255, 214, 90) : Color.FromArgb(255, 247, 214);
-            var redup = tertutup ? 0.5f : 1f;
-            var denyut = 1 + 0.12f * (float)Math.Sin(t * 0.07);
-            using (var jalur = new GraphicsPath())
-            {
-                var r = 16 * denyut;
-                jalur.AddEllipse(pos.X - r, pos.Y - r, r * 2, r * 2);
-                using var cahaya = new PathGradientBrush(jalur)
-                {
-                    CenterColor = Color.FromArgb((int)(110 * redup), warna),
-                    SurroundColors = new[] { Color.FromArgb(0, warna) }
-                };
-                g.FillPath(cahaya, jalur);
-            }
-            using var inti = new SolidBrush(Color.FromArgb((int)(240 * redup), warna));
-            g.FillEllipse(inti, pos.X - 6, pos.Y - 6, 12, 12);
         }
 
         private void GambarHujan(Graphics g, Size area)
@@ -222,7 +153,6 @@ namespace Swasana
                 using var kuas = new SolidBrush(Color.FromArgb(Math.Clamp(alpha, 0, 255), 255, 255, 230));
                 g.FillEllipse(kuas, x, y, 2.4f, 2.4f);
             }
-            if (fraksiLintasan != null) return;   // bulan sudah digambar di lintasannya
             // Bulan sabit kecil
             using var bulan = new SolidBrush(Color.FromArgb(220, 255, 247, 214));
             using var langit = new SolidBrush(Color.FromArgb(255, 24, 37, 72));

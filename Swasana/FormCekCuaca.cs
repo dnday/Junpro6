@@ -429,8 +429,6 @@ namespace Swasana
         {
             // Hero: lokasi, suhu, kondisi, latar langit
             var (atas, bawah) = Tema.WarnaLangit(data.WeatherCode, data.IsDay);
-            adegan.AturWaktu(data.Timestamp, data.MatahariTerbit, data.MatahariTerbenam);
-            if (adegan.Senja) atas = Campur(atas, Color.FromArgb(214, 112, 64), 0.35);   // fajar/senja: langit atas kejinggaan
             Animasi.Ubah(this, nameof(LangitAtas), atas, 600);
             Animasi.Ubah(this, nameof(LangitBawah), bawah, 600);
             namaIkonCuaca = Ikon.NamaCuaca(data.WeatherCode, data.IsDay);
@@ -621,10 +619,7 @@ namespace Swasana
 
         private void Pesan(string teks, bool error = true) => Tema.Pesan(lblPesan, teks, error);
 
-        private static Color Campur(Color a, Color b, double k) =>
-            Color.FromArgb((int)(a.R + (b.R - a.R) * k), (int)(a.G + (b.G - a.G) * k), (int)(a.B + (b.B - a.B) * k));
-
-        // Setelah kartu selesai berputar: Bahaya -> kartu bergetar + tepi berpendar; badai/Bahaya -> kilatan
+        // Setelah kartu selesai berputar: Bahaya -> kartu bergetar + tepi berpendar
         private async Task EfekStatusAsync(WeatherData data)
         {
             statusTampil = null;
@@ -633,7 +628,6 @@ namespace Swasana
             statusTampil = data.RiskLevel;
             pnlRisiko.Invalidate();
             if (data.RiskLevel == RiskLevel.Bahaya) Animasi.Getar(pnlRisiko, komponen.Px(6));
-            if ((data.RiskLevel == RiskLevel.Bahaya || data.WeatherCode >= 95) && Animasi.Aktif) adegan.Kilat();
         }
 
         private void GambarPendarRisiko(object? sender, PaintEventArgs e)
