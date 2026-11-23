@@ -55,7 +55,7 @@ Supaya semua pengguna memakai satu database bersama dan tidak perlu menginstal P
 2. Di dashboard klik **Connect**, pilih **Session pooler**, lalu salin URI-nya
    (`postgresql://postgres.<id-project>:[YOUR-PASSWORD]@aws-…pooler.supabase.com:5432/postgres`).
    Jangan pakai *Direct connection*: di paket gratis hanya lewat IPv6.
-3. Tempel URI tersebut ke kolom **Host** di jendela Koneksi database. Host, port, database, dan username terisi otomatis.
+3. Tempel URI tersebut ke kolom **Host** di jendela Koneksi database. Host, port, database, dan username terisi otomatis. Connection string bergaya .NET juga bisa ditempel, misalnya `Host=...;Port=5432;Database=postgres;Username=...;Password=...;SSL Mode=Require`; kalau berisi password, password ikut terisi.
 4. Ketik password database Supabase, lalu **Sambungkan**. Tabel dan data awal dibuat otomatis.
 
 Koneksi ke server online selalu memakai SSL. Semua tabel memakai *Row Level Security* sehingga tidak bisa dibaca lewat API publik Supabase, hanya lewat aplikasi ini.

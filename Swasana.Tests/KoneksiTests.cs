@@ -1,4 +1,4 @@
-using Npgsql;
+﻿using Npgsql;
 using Swasana.Data;
 
 namespace Swasana.Tests;
@@ -26,6 +26,27 @@ public class KoneksiTests
         Assert.Equal("p@ss:w0rd", b.Password);
         Assert.Equal(5432, b.Port);
         Assert.Equal("swasana_db", b.Database);
+    }
+
+    [Fact]
+    public void BacaUri_ConnectionStringNpgsql()
+    {
+        var b = DatabaseSetup.BacaUri(
+            " Host=aws-1-ap-northeast-1.pooler.supabase.com;Port=5432;Database=postgres;Username=swasana_app.abcd;Password=rahasia123;SSL Mode=Require ");
+        Assert.NotNull(b);
+        Assert.Equal("aws-1-ap-northeast-1.pooler.supabase.com", b.Host);
+        Assert.Equal(5432, b.Port);
+        Assert.Equal("postgres", b.Database);
+        Assert.Equal("swasana_app.abcd", b.Username);
+        Assert.Equal("rahasia123", b.Password);
+    }
+
+    [Theory]
+    [InlineData("Host=;Port=5432")]          // host kosong
+    [InlineData("Server=x;Foo=bar")]         // kata kunci tidak dikenal
+    public void BacaUri_ConnectionStringTidakLengkap_Null(string teks)
+    {
+        Assert.Null(DatabaseSetup.BacaUri(teks));
     }
 
     [Theory]
