@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Drawing.Drawing2D;
 
 namespace Swasana
@@ -10,6 +10,7 @@ namespace Swasana
         private List<(DateTime Tanggal, double Maks, double Min)> data = new();
         private readonly ToolTip tip = new ToolTip();
         private int indeksSorot = -1;
+        private double progres = 1;   // 0..1: seberapa jauh garis sudah tergambar
 
         [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string Judul { get; set; } = "Tren suhu harian";
@@ -32,7 +33,8 @@ namespace Swasana
             Judul = judul;
             indeksSorot = -1;
             tip.Hide(this);
-            Invalidate();
+            // Garis tergambar dari kiri ke kanan (ease-out), titik muncul saat dilewati garis
+            Animasi.Selama(900, p => { if (!IsDisposed) { progres = 1 - Math.Pow(1 - p, 3); Invalidate(); } });
         }
 
         private (RectangleF Area, double Atas, double Bawah) Geometri()
@@ -117,8 +119,11 @@ namespace Swasana
                 TextRenderer.DrawText(g, data[i].Tanggal.ToString("dd/MM"), fKecil,
                     new Rectangle((int)TitikX(area, i) - 24, (int)area.Bottom + 6, 48, 16), Tema.Redup, TextFormatFlags.HorizontalCenter);
 
+            var batas = area.Left - 6 + (area.Width + 12) * (float)progres;
+            g.SetClip(new RectangleF(0, 0, batas, Height));
             Garis(g, data.Select((d, i) => new PointF(TitikX(area, i), Y(d.Min))).ToArray(), WarnaMin);
             Garis(g, data.Select((d, i) => new PointF(TitikX(area, i), Y(d.Maks))).ToArray(), WarnaMaks);
+            g.ResetClip();
 
             if (data.Count == 1)
                 TextRenderer.DrawText(g, "Tren terlihat setelah ada data dari 2 hari atau lebih.", fKecil,

@@ -45,6 +45,10 @@ namespace Swasana
         private readonly System.Windows.Forms.Timer timerAdegan = new System.Windows.Forms.Timer { Interval = 33 };   // ~30 fps
         private readonly System.Diagnostics.Stopwatch jamAdegan = System.Diagnostics.Stopwatch.StartNew();
         private double detikTerakhir;
+        private RiskLevel? statusTampil;          // untuk pendar tepi kartu saat Bahaya
+        private PitaBerjalan? pita;               // pita peringatan dini BMKG
+        private Font? fontBintang;                // font asli tombol favorit
+        private double progresBintang = 1;        // 0..1 selama ledakan partikel bintang
         private string namaIkonCuaca = "partly-cloudy-day";   // ikon yang sedang tampil, untuk animasinya
         private readonly List<(Label Nilai, Shimmer Kilau)> kerangka = new();
 
@@ -92,6 +96,7 @@ namespace Swasana
                 detikTerakhir = sekarang;
                 // Ikon cuaca beranimasi (sinar matahari berputar, awan bergeser, hujan turun) dari Meteocons
                 if (Ikon.FrameAnimasi(namaIkonCuaca, sekarang) is { } frame) picCuaca.Image = frame;
+                if (statusTampil == RiskLevel.Bahaya) pnlRisiko.Invalidate();
                 pnlHero.Invalidate();
             };
             FormClosed += (s, e) => { timerAdegan.Stop(); timerKartu.Stop(); timerSaran.Stop(); batalSaran?.Cancel(); batalSaran?.Dispose(); tip.Dispose(); };
@@ -105,6 +110,10 @@ namespace Swasana
             timerSaran.Tick += timerSaran_Tick;
             lstSaran.BringToFront();
             Animasi.Hover(btnKembali, Tema.HoverSekunder);
+            foreach (var kotak in new Control[] { pnlKelembapan, pnlAngin, pnlHujan, pnlUv, pnlUdara }) Animasi.Angkat(kotak);
+            lblPesan.TextChanged += (s, e) => PerbaruiPita();
+            btnFavorit.Paint += GambarPartikelBintang;
+            pnlRisiko.Paint += GambarPendarRisiko;
         }
 
         // Lokasi perangkat (GPS / Wi-Fi Windows), lalu nama tempatnya dicari dari koordinat
@@ -234,8 +243,19 @@ namespace Swasana
                 lstSaran.Items.Clear();
                 foreach (var s in saran) lstSaran.Items.Add(s);
                 lstSaran.EndUpdate();
-                lstSaran.Height = Math.Min(saran.Count, 5) * lstSaran.ItemHeight + 2;
-                lstSaran.Visible = saran.Count > 0;
+                var tinggi = Math.Min(saran.Count, 5) * lstSaran.ItemHeight + 2;
+                if (!lstSaran.Visible && saran.Count > 0 && Animasi.Aktif)
+                {
+                    // Daftar saran turun halus dari kotak lokasi
+                    lstSaran.Height = 0;
+                    lstSaran.Visible = true;
+                    Animasi.Ubah(lstSaran, nameof(Control.Height), tinggi, 160);
+                }
+                else
+                {
+                    lstSaran.Height = tinggi;
+                    lstSaran.Visible = saran.Count > 0;
+                }
                 if (saran.Count > 0) lstSaran.SelectedIndex = 0;
                 AcceptButton = saran.Count > 0 ? null : btnCek;   // selama daftar terbuka, Enter = pilih saran
             }
@@ -393,6 +413,7 @@ namespace Swasana
                 if (IsDisposed) return;
                 Pesan(jadikanFavorit ? $"{lokasi.Name} disimpan ke favorit." : $"{lokasi.Name} dihapus dari favorit.", error: false);
                 await MuatFavoritAsync();
+                AnimasiBintang(jadikanFavorit);
             }
             catch (Exception)
             {
@@ -408,6 +429,8 @@ namespace Swasana
         {
             // Hero: lokasi, suhu, kondisi, latar langit
             var (atas, bawah) = Tema.WarnaLangit(data.WeatherCode, data.IsDay);
+            adegan.AturWaktu(data.Timestamp, data.MatahariTerbit, data.MatahariTerbenam);
+            if (adegan.Senja) atas = Campur(atas, Color.FromArgb(214, 112, 64), 0.35);   // fajar/senja: langit atas kejinggaan
             Animasi.Ubah(this, nameof(LangitAtas), atas, 600);
             Animasi.Ubah(this, nameof(LangitBawah), bawah, 600);
             namaIkonCuaca = Ikon.NamaCuaca(data.WeatherCode, data.IsDay);
@@ -448,6 +471,8 @@ namespace Swasana
             });
 
             TampilkanRekomendasi(data.RiskLevel);
+            PerbaruiPita();
+            _ = EfekStatusAsync(data);
             lblSumber.Text = $"Data cuaca Open-Meteo pukul {data.Timestamp:HH:mm} waktu setempat."
                 + (data.PeringatanBmkg != null ? " Peringatan dini dari BMKG." : "");
         }
@@ -595,6 +620,79 @@ namespace Swasana
         }
 
         private void Pesan(string teks, bool error = true) => Tema.Pesan(lblPesan, teks, error);
+
+        private static Color Campur(Color a, Color b, double k) =>
+            Color.FromArgb((int)(a.R + (b.R - a.R) * k), (int)(a.G + (b.G - a.G) * k), (int)(a.B + (b.B - a.B) * k));
+
+        // Setelah kartu selesai berputar: Bahaya -> kartu bergetar + tepi berpendar; badai/Bahaya -> kilatan
+        private async Task EfekStatusAsync(WeatherData data)
+        {
+            statusTampil = null;
+            await Task.Delay(Animasi.Aktif ? 750 : 0);
+            if (IsDisposed || dataTerakhir != data) return;
+            statusTampil = data.RiskLevel;
+            pnlRisiko.Invalidate();
+            if (data.RiskLevel == RiskLevel.Bahaya) Animasi.Getar(pnlRisiko, komponen.Px(6));
+            if ((data.RiskLevel == RiskLevel.Bahaya || data.WeatherCode >= 95) && Animasi.Aktif) adegan.Kilat();
+        }
+
+        private void GambarPendarRisiko(object? sender, PaintEventArgs e)
+        {
+            if (statusTampil != RiskLevel.Bahaya) return;
+            var denyut = Animasi.Aktif ? 0.5 + 0.5 * Math.Sin(Environment.TickCount64 / 1000.0 * Math.PI * 1.4) : 1;
+            var tebal = komponen.Px(3);
+            using var pena = new Pen(Color.FromArgb((int)(90 + 140 * denyut), 255, 214, 214), tebal);
+            e.Graphics.DrawRectangle(pena, tebal / 2f, tebal / 2f, pnlRisiko.Width - tebal, pnlRisiko.Height - tebal);
+        }
+
+        // Pita kuning berjalan berisi peringatan dini BMKG, tampil di baris pesan saat tidak ada pesan lain
+        private void PerbaruiPita()
+        {
+            var peringatan = dataTerakhir?.PeringatanBmkg;
+            if (peringatan == null && pita == null) return;
+            if (pita == null)
+            {
+                pita = new PitaBerjalan { Bounds = lblPesan.Bounds, Visible = false };
+                lblPesan.Parent!.Controls.Add(pita);
+                pita.BringToFront();
+            }
+            if (peringatan != null)
+                pita.Text = $"⚠  Peringatan dini BMKG: {peringatan.Judul}, berlaku sampai pukul {peringatan.Berakhir.ToLocalTime():HH:mm}";
+            pita.Visible = peringatan != null && lblPesan.Text.Length == 0;
+        }
+
+        // Bintang favorit: membesar dan memantul sambil menyemburkan partikel (simpan), atau mengecil (hapus)
+        private void AnimasiBintang(bool simpan)
+        {
+            fontBintang ??= btnFavorit.Font;
+            var asal = fontBintang;
+            Animasi.Selama(520, p =>
+            {
+                if (btnFavorit.IsDisposed) return;
+                var skala = simpan ? 1 + 0.7 * Math.Sin(Math.PI * Math.Min(1, p * 1.4)) * (1 - p * 0.4) : 1 - 0.45 * Math.Sin(Math.PI * p);
+                var lama = btnFavorit.Font;
+                btnFavorit.Font = p >= 1 ? asal : new Font(asal.FontFamily, (float)(asal.Size * skala), asal.Style);
+                if (!ReferenceEquals(lama, asal)) lama.Dispose();
+                progresBintang = simpan ? p : 1;
+                btnFavorit.Invalidate();
+            });
+        }
+
+        private void GambarPartikelBintang(object? sender, PaintEventArgs e)
+        {
+            if (progresBintang >= 1) return;
+            var g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            var p = progresBintang;
+            float cx = btnFavorit.Width / 2f, cy = btnFavorit.Height / 2f, r = komponen.Px(4) + (float)p * komponen.Px(13);
+            using var kuas = new SolidBrush(Color.FromArgb((int)(255 * (1 - p)), 245, 176, 40));
+            for (int i = 0; i < 8; i++)
+            {
+                var sudut = i * Math.PI / 4 + 0.3;
+                var ukuran = komponen.Px(3) * (float)(1 - p * 0.5);
+                g.FillEllipse(kuas, cx + r * (float)Math.Cos(sudut) - ukuran / 2, cy + r * (float)Math.Sin(sudut) - ukuran / 2, ukuran, ukuran);
+            }
+        }
 
         // Placeholder berkilau (shimmer) menggantikan nilai kotak detail selama data dimuat.
         // Dibuat saat pertama dipakai, setelah form selesai diskalakan sesuai DPI.

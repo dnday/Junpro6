@@ -14,6 +14,7 @@ namespace Swasana
             Icon = Tema.IkonAplikasi;
             Db = db;
             picLogo.Image = Ikon.Muat("partly-cloudy-day");
+            Animasi.IkonHidup(picLogo, this, "partly-cloudy-day");
             Animasi.FadeIn(this);
             Animasi.Hover(btnLogin, Tema.HoverUtama);
             Animasi.Hover(btnClose, Tema.HoverSekunder);
@@ -32,6 +33,7 @@ namespace Swasana
             lblPesan.Text = "";
             Cursor = Cursors.WaitCursor;
             btnLogin.Enabled = false;
+            var putar = Animasi.Spinner(btnLogin, "Memeriksa");
             try
             {
                 // ponytail: login cukup username (tabel users belum punya kolom password)
@@ -39,6 +41,7 @@ namespace Swasana
                 var ditemukan = await Task.Run(() => users.FindByUsername(username));
                 if (ditemukan == null)
                 {
+                    putar.Dispose();
                     var jawaban = MessageBox.Show(this,
                         $"Username \"{username}\" belum terdaftar. Buat akun baru dengan username ini?",
                         "Akun baru", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -59,6 +62,7 @@ namespace Swasana
             }
             finally
             {
+                putar.Dispose();
                 Cursor = Cursors.Default;
                 btnLogin.Enabled = true;
             }

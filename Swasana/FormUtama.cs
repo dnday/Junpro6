@@ -16,6 +16,7 @@ namespace Swasana
             this.user = user;
             lblUser.Text = "Halo, " + user.Username;
             picLogo.Image = Ikon.Muat("partly-cloudy-day");
+            Animasi.IkonHidup(picLogo, this, "partly-cloudy-day");
             btnCekCuaca.Image = new Bitmap(Ikon.Muat("partly-cloudy-day"), 40, 40);
             btnRiwayat.Image = new Bitmap(Ikon.Muat("raindrop-measure"), 40, 40);
             Animasi.FadeIn(this);

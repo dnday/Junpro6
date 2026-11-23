@@ -104,7 +104,7 @@ public class WeatherService
             "https://api.open-meteo.com/v1/forecast?latitude={0}&longitude={1}" +
             "&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,wind_speed_10m,weather_code,is_day,uv_index" +
             "&hourly=temperature_2m,precipitation_probability,weather_code,is_day&forecast_hours=8" +
-            "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=7&timezone=auto",
+            "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&forecast_days=7&timezone=auto",
             latitude, longitude);
         var urlUdara = string.Format(CultureInfo.InvariantCulture,
             "https://air-quality-api.open-meteo.com/v1/air-quality?latitude={0}&longitude={1}&current=us_aqi,pm2_5",
@@ -182,6 +182,11 @@ public class WeatherService
                     peluang.ValueKind == JsonValueKind.Number ? peluang.GetInt32() : 0,
                     daily.GetProperty("weather_code")[i].GetInt32()));
             }
+            // Matahari terbit/terbenam hari ini (waktu setempat), untuk posisi matahari/bulan di panel cuaca
+            DateTime? Jam(string kunci) => daily.TryGetProperty(kunci, out var j) && j.GetArrayLength() > 0 && j[0].GetString() is { } x
+                ? DateTime.Parse(x, CultureInfo.InvariantCulture) : null;
+            data.MatahariTerbit = Jam("sunrise");
+            data.MatahariTerbenam = Jam("sunset");
         }
         return data;
     }
