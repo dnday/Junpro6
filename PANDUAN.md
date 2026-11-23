@@ -7,21 +7,21 @@ SWASANA (Sistem Waspada Suasana & Adaptasi Iklim) adalah aplikasi desktop untuk 
 | Komponen | Keterangan |
 |---|---|
 | Windows 10 (versi 2004+) / 11, 64-bit | .NET **tidak** perlu diinstal, sudah ikut di dalam `Swasana.exe` |
-| PostgreSQL 14 atau lebih baru | **Tidak perlu** untuk versi rilis (sudah memakai database online). Hanya kalau ingin memakai database sendiri |
+| Database PostgreSQL | PostgreSQL 14 atau lebih baru di komputer sendiri, **atau** database online (misalnya Supabase) |
 | Koneksi internet | Untuk data cuaca dan pencarian lokasi |
 
 ## 2. Instalasi
 
 1. Ekstrak `SWASANA.zip` ke folder mana saja, misalnya `D:\SWASANA`.
-2. Jalankan `Swasana.exe` lalu masuk dengan username. Tidak ada langkah instalasi lain.
+2. Jalankan `Swasana.exe`. Saat pertama dibuka, isi koneksi database (lihat bagian 3), lalu masuk dengan username.
 
 > Jika muncul peringatan Windows SmartScreen, klik **More info → Run anyway** (aplikasi belum ditandatangani digital).
 
 ## 3. Konfigurasi database
 
-**Versi rilis sudah tersambung ke database online bawaan (Supabase)**, jadi pengguna bisa langsung masuk tanpa menginstal PostgreSQL atau mengisi pengaturan apa pun. Aplikasi memakai akun database khusus yang hanya boleh membaca, menambah, dan mengubah data aplikasi.
+Saat pertama dibuka, aplikasi menampilkan form **Koneksi database**. Isi dengan PostgreSQL milik sendiri (lihat **Memakai database sendiri**) atau tempel URI database online (lihat **Memakai database online (Supabase)**). Pengaturan tersimpan dan bisa diubah lagi lewat **Atur koneksi database**.
 
-Pengaturan di bawah ini hanya diperlukan kalau ingin memakai database sendiri. Untuk kembali ke database bawaan, buka **Atur koneksi database** lalu klik **Pakai database online bawaan**.
+Beberapa build bisa membawa database online bawaan. Pada build seperti itu aplikasi langsung tersambung, dan tautan **Pakai database online bawaan** muncul di form koneksi.
 
 > Untuk pengembang: koneksi bawaan dibaca dari `Swasana/koneksi-bawaan.txt` (tidak ikut di repo karena berisi password) dan ditanam ke exe saat build. Akun aplikasinya dibuat dengan `database/supabase_akun_aplikasi.sql`. Tanpa file itu, exe meminta pengaturan koneksi seperti biasa.
 
