@@ -7,21 +7,21 @@ SWASANA (Sistem Waspada Suasana & Adaptasi Iklim) adalah aplikasi desktop untuk 
 | Komponen | Keterangan |
 |---|---|
 | Windows 10 (versi 2004+) / 11, 64-bit | .NET **tidak** perlu diinstal, sudah ikut di dalam `Swasana.exe` |
-| PostgreSQL 14 atau lebih baru | **Tidak perlu** untuk versi rilis (sudah memakai database online). Hanya kalau ingin memakai database sendiri |
+| Database PostgreSQL | PostgreSQL 14 atau lebih baru di komputer sendiri, **atau** database online (misalnya Supabase) |
 | Koneksi internet | Untuk data cuaca dan pencarian lokasi |
 
 ## 2. Instalasi
 
 1. Ekstrak `SWASANA.zip` ke folder mana saja, misalnya `D:\SWASANA`.
-2. Jalankan `Swasana.exe` lalu masuk dengan username. Tidak ada langkah instalasi lain.
+2. Jalankan `Swasana.exe`. Saat pertama dibuka, isi koneksi database (lihat bagian 3), lalu masuk dengan username.
 
 > Jika muncul peringatan Windows SmartScreen, klik **More info → Run anyway** (aplikasi belum ditandatangani digital).
 
 ## 3. Konfigurasi database
 
-**Versi rilis sudah tersambung ke database online bawaan (Supabase)**, jadi pengguna bisa langsung masuk tanpa menginstal PostgreSQL atau mengisi pengaturan apa pun. Aplikasi memakai akun database khusus yang hanya boleh membaca, menambah, dan mengubah data aplikasi.
+Saat pertama dibuka, aplikasi menampilkan form **Koneksi database**. Isi dengan PostgreSQL milik sendiri (lihat **Memakai database sendiri**) atau tempel URI database online (lihat **Memakai database online (Supabase)**). Pengaturan tersimpan dan bisa diubah lagi lewat **Atur koneksi database**.
 
-Pengaturan di bawah ini hanya diperlukan kalau ingin memakai database sendiri. Untuk kembali ke database bawaan, buka **Atur koneksi database** lalu klik **Pakai database online bawaan**.
+Beberapa build bisa membawa database online bawaan. Pada build seperti itu aplikasi langsung tersambung, dan tautan **Pakai database online bawaan** muncul di form koneksi.
 
 > Untuk pengembang: koneksi bawaan dibaca dari `Swasana/koneksi-bawaan.txt` (tidak ikut di repo karena berisi password) dan ditanam ke exe saat build. Akun aplikasinya dibuat dengan `database/supabase_akun_aplikasi.sql`. Tanpa file itu, exe meminta pengaturan koneksi seperti biasa.
 
@@ -66,10 +66,11 @@ Skema SQL lengkap ada di `swasana_schema.sql` jika ingin dijalankan manual lewat
 
 ## 4. Cara pakai
 
-1. **Masuk**: ketik username lalu **Masuk**. Username baru otomatis didaftarkan, dan setiap username punya riwayat sendiri.
+1. **Masuk**: ketik username lalu **Masuk**. Kalau username belum terdaftar, muncul konfirmasi untuk membuat akun baru (pilih **Tidak** kalau hanya salah ketik). Setiap username punya riwayat sendiri.
 2. **Menu**: pilih **Cek cuaca**, **Riwayat**, **Tentang SWASANA**, atau **Keluar**.
 3. **Cek cuaca**:
-   - Lokasi **favorit** tampil sebagai tombol di bawah kotak lokasi: klik sekali untuk langsung mengecek cuacanya. Tekan **☆** untuk menyimpan lokasi yang sedang dipilih (berubah menjadi ★), tekan lagi atau klik kanan tombol favorit untuk menghapusnya.
+   - Lokasi yang terakhir Anda cek langsung ditampilkan cuacanya saat halaman dibuka (tidak ditambahkan lagi ke riwayat sampai Anda menekan **Cek cuaca**).
+   - Lokasi **favorit** tampil sebagai tombol di bawah kotak lokasi: klik sekali untuk langsung mengecek cuacanya. Tekan **☆** untuk menyimpan lokasi yang sedang dipilih (berubah menjadi ★), tekan lagi untuk menghapusnya. Favorit juga bisa dihapus dengan klik kanan atau tombol **Delete** saat tombolnya terpilih.
    - Mulai ketik nama kota, misalnya `yog`. Daftar saran muncul (lokasi Indonesia di atas). Pilih dengan klik, atau dengan panah ↑/↓ lalu Enter, dan cuacanya langsung tampil.
    - Atau klik **Lokasi saya** untuk memakai lokasi perangkat (layanan lokasi Windows harus aktif: *Settings › Privacy & security › Location*).
    - Bisa juga mengisi latitude/longitude sendiri (koma atau titik sama-sama diterima) lalu klik **Cek cuaca**.
@@ -80,7 +81,7 @@ Skema SQL lengkap ada di `swasana_schema.sql` jika ingin dijalankan manual lewat
      - **status risiko** beserta alasannya;
      - kartu **saran tindakan**.
    - Setiap hasil otomatis tersimpan ke riwayat.
-4. **Riwayat**: grafik **tren suhu maksimum & minimum harian** dari data yang tersimpan, lalu daftar semua pengecekan milik user yang sedang masuk, terbaru di atas. Ketik nama lokasi lalu **Cari** untuk menyaring. Jendela ini bisa diperbesar.
+4. **Riwayat**: grafik **tren suhu maksimum & minimum harian** dari data yang tersimpan, lalu daftar semua pengecekan milik user yang sedang masuk, terbaru di atas. Ketik nama lokasi untuk menyaring langsung (atau tekan **Cari**), dan pilih status risiko di daftar di sebelahnya. Klik judul kolom untuk mengurutkan, arahkan kursor ke grafik untuk melihat suhu maks/min tiap hari, dan klik **Ekspor CSV** untuk menyimpan daftar yang sedang tampil ke file. Jendela ini bisa diperbesar.
 
 ### Aturan risiko
 

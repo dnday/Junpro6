@@ -15,6 +15,8 @@ namespace Swasana
         public static readonly Color Hujan = Color.FromArgb(30, 100, 200);
         public static readonly Color HoverUtama = Color.FromArgb(28, 104, 124);
         public static readonly Color HoverSekunder = Color.FromArgb(231, 241, 244);
+        public static readonly Color Terpilih = Color.FromArgb(214, 232, 238);
+        public static readonly Color WaspadaGelap = Color.FromArgb(150, 100, 0);   // kuning gelap supaya terbaca di latar putih
 
         public static readonly Font HurufKecil = new Font("Segoe UI", 8.25F);
         public static readonly Font HurufSedang = new Font("Segoe UI", 9F);
@@ -42,6 +44,12 @@ namespace Swasana
             if (kode >= 51) return (Color.FromArgb(48, 62, 80), Color.FromArgb(72, 90, 110));             // hujan    7,1:1
             if (kode == 3 || kode == 45 || kode == 48) return (Color.FromArgb(62, 82, 102), Color.FromArgb(84, 104, 124)); // mendung 5,8:1
             return (Color.FromArgb(21, 96, 170), Color.FromArgb(36, 114, 186));                           // cerah    5,0:1
+        }
+
+        public static void Pesan(Label label, string teks, bool error = true)
+        {
+            label.ForeColor = error ? Galat : Redup;
+            label.Text = teks;
         }
 
         public static void BatasiKeLayar(Form form)

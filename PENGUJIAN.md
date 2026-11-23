@@ -42,7 +42,7 @@ Diuji manual (di luar skrip otomatis):
 
 ## 2. Pengujian unit (xUnit)
 
-Perintah: `dotnet test Swasana.Tests` → **37 lulus, 0 gagal**.
+Perintah: `dotnet test Swasana.Tests` → **61 lulus, 0 gagal**.
 
 | Test | Yang diuji |
 |---|---|
@@ -56,12 +56,17 @@ Perintah: `dotnet test Swasana.Tests` → **37 lulus, 0 gagal**.
 | `NamaCuaca_SesuaiKodeWmo` (7 kasus) | Kode cuaca WMO dipetakan ke ikon yang benar (cerah siang/malam, hujan, hujan lebat, badai) |
 | `SemuaIkonTertanamDiAplikasi` | Ikon Meteocons tertanam di dalam exe |
 | `SetLocation_TolakKoordinatDiLuarRentang` | `Location.setLocation()` menolak lat > 90 dan lon > 180 |
+| `KategoriAqi_BatasUsAqi`, `KategoriUv_SkalaWho` | Batas kategori kualitas udara (50/100/150/200) dan indeks UV (3/6/8/11) |
+| `NilaiAturan_MenampilkanNilaiYangDinilai`, `WarnaLangit_MalamTidakDipengaruhiKodeCuaca` | Nilai yang dinilai tiap aturan ditampilkan; langit malam sama untuk semua kode cuaca |
+| `BuatCsv_*` | Ekspor riwayat: header dan satu baris per data; nama lokasi dengan koma atau tanda kutip diberi kutip, awalan `=` diamankan dari rumus Excel |
+| `BacaUri_*` | URI koneksi Supabase dipecah ke host, port, database, dan username; password placeholder `[YOUR-...]` diabaikan, password dengan karakter khusus didekode, dan teks yang bukan URI menghasilkan null |
+| `PilihSsl_OnlineWajibTerenkripsi` | Host lokal (`localhost`, `127.0.0.1`) memakai SSL `Prefer`; server online memakai `Require` |
 
 ## 3. Pengujian instalasi dan aksesibilitas
 
 | Aspek | Hasil |
 |---|---|
-| Jalankan `Swasana.exe` tanpa pengaturan sebelumnya | Langsung terbuka **Koneksi database** |
+| Jalankan `Swasana.exe` tanpa pengaturan sebelumnya | Exe tanpa database bawaan langsung membuka **Koneksi database**; exe yang membawa database online bawaan langsung membuka halaman **Masuk** |
 | .NET tidak perlu diinstal | Ya, runtime sudah ikut di dalam exe (self-contained, ±59 MB) |
 | Database tidak perlu dibuat manual | Ya, dibuat otomatis (T03) |
 | Kontras teks (WCAG AA ≥ 4,5:1) | Dihitung dari nilai warna: teks putih di langit cerah 5,0:1, mendung 5,8:1, hujan 7,1:1, malam 10,5:1; status Aman 5,1:1, Waspada 6,7:1, Bahaya 5,6:1 |

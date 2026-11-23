@@ -115,11 +115,7 @@ namespace Swasana
             }
         }
 
-        private void Pesan(string teks, bool error = true)
-        {
-            lblPesan.ForeColor = error ? Tema.Galat : Tema.Redup;
-            lblPesan.Text = teks;
-        }
+        private void Pesan(string teks, bool error = true) => Tema.Pesan(lblPesan, teks, error);
 
         private void btnBatal_Click(object sender, EventArgs e)
         {

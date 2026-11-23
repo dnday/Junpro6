@@ -9,7 +9,7 @@ description: Sistem Waspada Suasana & Adaptasi Iklim
 
 Junior Project (Teknik Basis Data, Pemrograman Berbasis Objek), Departemen Teknik Elektro dan Teknologi Informasi, Fakultas Teknik, Universitas Gadjah Mada.
 
-**[Unduh versi terbaru](https://github.com/dnday/Junpro6/releases/latest)**: ekstrak `SWASANA.zip`, jalankan `Swasana.exe`, lalu masuk dengan username. Tidak perlu menginstal .NET maupun PostgreSQL.
+**[Unduh versi terbaru](https://github.com/dnday/Junpro6/releases/latest)**: ekstrak `SWASANA.zip`, jalankan `Swasana.exe`, isi koneksi database (PostgreSQL sendiri atau URI Supabase), lalu masuk dengan username. Tidak perlu menginstal .NET.
 
 ![Cek cuaca](pengujian/T11-hasil-sleman.png)
 
@@ -40,10 +40,10 @@ Aplikasi cuaca pada umumnya hanya menampilkan angka mentah (suhu, kelembapan, cu
 | Lokasi saya | Memakai layanan lokasi Windows, lalu nama tempatnya dicari otomatis |
 | Lokasi favorit | Simpan lokasi dengan tombol ☆, cek cuacanya sekali klik |
 | Prakiraan | Per jam (8 jam) dan 7 hari ke depan |
-| Status risiko | Aman / Waspada / Bahaya dari 6 aturan, ditampilkan beserta nilai yang dinilai |
+| Status risiko | Aman / Waspada / Bahaya dari 5 aturan berbasis BMKG, WHO, NOAA, dan US EPA, ditampilkan beserta nilai yang dinilai |
 | Saran tindakan | Kartu saran per kategori (aktivitas, kesehatan, perlindungan diri) |
 | Riwayat | Semua pengecekan tersimpan, bisa dicari per lokasi dan disaring per status, dengan grafik tren suhu harian dan ekspor ke CSV |
-| Database online | Langsung tersambung ke database Supabase; bisa diganti ke PostgreSQL sendiri |
+| Database | PostgreSQL lokal atau database online (Supabase, cukup tempel URI); database dan tabel dibuat otomatis |
 | Tampilan | Ikon cuaca, latar langit sesuai cuaca, adegan animasi (hujan, panas, badai, angin, malam), kartu risiko berputar 3D |
 | Aksesibilitas | Kontras teks memenuhi WCAG AA, status tidak hanya ditandai warna, animasi mati jika efek animasi Windows dimatikan |
 
@@ -75,24 +75,37 @@ Aplikasi cuaca pada umumnya hanya menampilkan angka mentah (suhu, kelembapan, cu
 
 1. Unduh `SWASANA.zip` dari halaman [rilis](https://github.com/dnday/Junpro6/releases/latest) dan ekstrak ke folder mana saja.
 2. Jalankan `Swasana.exe`. Jika muncul peringatan SmartScreen, pilih **More info → Run anyway**.
-3. Ketik username lalu **Masuk**. Username baru otomatis didaftarkan.
-4. Pilih **Cek cuaca**, ketik nama kota lalu pilih dari daftar saran, atau tekan **Lokasi saya**.
-5. Tekan **☆** untuk menyimpan lokasi favorit, dan buka **Riwayat** untuk melihat tren.
+3. Pada pemakaian pertama, isi form **Koneksi database**: PostgreSQL di komputer sendiri, atau tempel URI database online (Supabase).
+4. Ketik username lalu **Masuk**. Username baru dikonfirmasi dulu sebelum didaftarkan.
+5. Pilih **Cek cuaca**, ketik nama kota lalu pilih dari daftar saran, atau tekan **Lokasi saya**.
+6. Tekan **☆** untuk menyimpan lokasi favorit, dan buka **Riwayat** untuk melihat tren.
 
-Kebutuhan: Windows 10 (versi 2004+) / 11 64-bit dan koneksi internet. Panduan lengkap, termasuk memakai database sendiri, ada di [PANDUAN.md](https://github.com/dnday/Junpro6/blob/main/PANDUAN.md).
+Kebutuhan: Windows 10 (versi 2004+) / 11 64-bit dan koneksi internet. Panduan lengkap, termasuk menyiapkan database, ada di [PANDUAN.md](https://github.com/dnday/Junpro6/blob/main/PANDUAN.md).
 
 ## Aturan risiko
 
-Status akhir adalah tingkat tertinggi dari enam aturan. Setiap aturan adalah class turunan dari `RiskRule` (inheritance) yang mengisi method `Evaluate()` dengan caranya sendiri (polymorphism).
+Status akhir adalah tingkat tertinggi dari lima aturan. Setiap aturan adalah class turunan dari `RiskRule` (inheritance) yang mengisi method `Evaluate()` dengan caranya sendiri (polymorphism). Ambang tiap aturan diambil dari peraturan BMKG, pedoman resmi, dan jurnal.
 
-| Aturan | Waspada | Bahaya |
-|---|---|---|
-| Suhu udara | di atas 33 °C | di atas 35 °C |
-| Curah hujan | mulai 5 mm/jam | – |
-| Hujan dan angin | – | hujan mulai 10 mm/jam dan angin mulai 45 km/jam |
-| Indeks UV (skala WHO) | mulai 8 | mulai 11 |
-| Heat index (rumus NOAA, dari suhu dan kelembapan) | mulai 32 °C | mulai 41 °C |
-| Kualitas udara (US AQI) | 101 sampai 150 | mulai 151 |
+| Aturan | Waspada | Bahaya | Rujukan |
+|---|---|---|---|
+| Curah hujan | hujan lebat, 10 sampai di bawah 20 mm/jam | hujan sangat lebat, mulai 20 mm/jam | [1], [2] |
+| Hujan dan angin | – | hujan mulai 10 mm/jam dan angin di atas 45 km/jam (25 knot) | [1] |
+| Indeks UV | sangat tinggi, 8–10 | ekstrem, mulai 11 | [3], [4] |
+| Heat index (dari suhu dan kelembapan) | *extreme caution*, 32–41 °C | *danger*, mulai 41 °C | [5], [6] |
+| Kualitas udara (US AQI) | tidak sehat bagi kelompok sensitif, 101–150 | tidak sehat, mulai 151 | [7], [8] |
+
+Aturan suhu udara saja (di atas 33/35 °C) dihapus karena ambang itu tidak ada di peraturan BMKG maupun jurnal; BMKG mendefinisikan suhu ekstrem sebagai penyimpangan dari normal setempat. Penilaian panas memakai heat index, yang menggabungkan suhu dan kelembapan.
+
+### Rujukan
+
+1. Badan Meteorologi, Klimatologi, dan Geofisika. (2010). *Peraturan Kepala BMKG Nomor Kep.009 Tahun 2010 tentang Prosedur Standar Operasional Pelaksanaan Peringatan Dini, Pelaporan, dan Diseminasi Informasi Cuaca Ekstrem* (Berita Negara RI 2010 No. 497). Kriteria cuaca ekstrem: hujan lebat mulai 20 mm/jam, angin kencang di atas 25 knot (45 km/jam). Kini digantikan Peraturan BMKG Nomor 9 Tahun 2022.
+2. Lestari, T. A., dkk. Analisis hujan sangat lebat yang menyebabkan genangan di sebagian wilayah Jakarta menggunakan citra radar (studi kasus 18 Januari 2022). *Universitas Negeri Jakarta*. https://journal.unj.ac.id/unj/index.php/castle/article/view/67087 (kategori intensitas hujan BMKG; lebih dari 20 mm/jam tergolong sangat lebat).
+3. World Health Organization. (2002). *Global Solar UV Index: A Practical Guide*. WHO, WMO, UNEP, ICNIRP.
+4. Fioletov, V., Kerr, J. B., & Fergusson, A. (2010). The UV Index: definition, distribution and factors affecting it. *Canadian Journal of Public Health, 101*(4), I5–I9. https://doi.org/10.1007/BF03405303
+5. Rothfusz, L. P. (1990). *The Heat Index "Equation"* (NWS Technical Attachment SR 90-23). National Weather Service.
+6. Anderson, G. B., Bell, M. L., & Peng, R. D. (2013). Methods to calculate the heat index as an exposure metric in environmental health research. *Environmental Health Perspectives, 121*(10), 1111–1119. https://doi.org/10.1289/ehp.1206273
+7. U.S. Environmental Protection Agency. (2018). *Technical Assistance Document for the Reporting of Daily Air Quality – the Air Quality Index (AQI)* (EPA-454/B-18-007).
+8. Plaia, A., & Ruggieri, M. (2011). Air quality indices: a review. *Reviews in Environmental Science and Bio/Technology, 10*(2), 165–179. https://doi.org/10.1007/s11157-010-9227-2
 
 ## Rancangan sistem
 
@@ -135,7 +148,7 @@ Enam tabel di PostgreSQL. Database, tabel, dan data awal dibuat otomatis oleh ap
 
 ### Layanan dan aturan risiko
 
-`RiskEvaluator` menyimpan enam objek turunan `RiskRule` dalam satu daftar dan memanggil `Evaluate()` milik masing-masing (polymorphism).
+`RiskEvaluator` menyimpan lima objek turunan `RiskRule` dalam satu daftar dan memanggil `Evaluate()` milik masing-masing (polymorphism).
 
 ![Class diagram layanan](diagram/class-layanan.png)
 
@@ -144,7 +157,7 @@ Sumber semua diagram (format Mermaid) ada di folder [`docs/diagram`](https://git
 ## Pengujian
 
 - **Pengujian fungsional**: 22 skenario dijalankan otomatis pada aplikasi hasil rilis, mulai dari database kosong; semuanya lulus. Rincian di [PENGUJIAN.md](https://github.com/dnday/Junpro6/blob/main/PENGUJIAN.md).
-- **Pengujian unit**: 61 test (aturan risiko, pembacaan data Open-Meteo, koneksi database, ekspor CSV, dan lainnya); semuanya lulus.
+- **Pengujian unit**: 61 test (batas aturan risiko, pembacaan data Open-Meteo, koneksi database, ekspor CSV, dan lainnya); semuanya lulus.
 
 ## Teknologi
 
