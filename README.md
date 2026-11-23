@@ -2,7 +2,7 @@
 
 **Sistem Waspada Suasana & Adaptasi Iklim**: aplikasi desktop Windows untuk mengecek cuaca terkini, menilai tingkat risikonya (**Aman / Waspada / Bahaya**), dan memberi saran tindakan yang bisa langsung dilakukan.
 
-Junior Project (Teknik Basis Data, Pemrograman Berbasis Objek), Departemen Teknik Elektro dan Teknologi Informasi, Fakultas Teknik, Universitas Gadjah Mada.
+Junior Project, Departemen Teknik Elektro dan Teknologi Informasi, Fakultas Teknik, Universitas Gadjah Mada.
 
 **[Unduh versi terbaru](https://github.com/dnday/Junpro6/releases/latest)**: ekstrak `SWASANA.zip`, jalankan `Swasana.exe`, isi koneksi database (PostgreSQL sendiri atau URI Supabase), lalu masuk dengan username. Tidak perlu menginstal .NET.
 
@@ -23,6 +23,7 @@ Junior Project (Teknik Basis Data, Pemrograman Berbasis Objek), Departemen Tekni
 - [Teknologi](#teknologi)
 - [Tim](#tim)
 - [Kredit](#kredit)
+- [Lisensi](#lisensi)
 
 ## Latar belakang
 
@@ -205,3 +206,7 @@ Menjalankan dari kode sumber: `dotnet run --project Swasana`; menjalankan test: 
 - Ikon cuaca: [Meteocons](https://github.com/basmilius/meteocons) oleh Bas Milius (MIT)
 - Animasi: [FluentTransitions](https://github.com/awaescher/FluentTransitions) (MIT)
 - Driver PostgreSQL: [Npgsql](https://www.npgsql.org)
+
+## Lisensi
+
+Kode SWASANA dirilis dengan [lisensi MIT](https://github.com/dnday/Junpro6/blob/main/LICENSE). Komponen pihak ketiga di atas memakai lisensinya masing-masing.
