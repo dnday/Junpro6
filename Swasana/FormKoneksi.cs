@@ -99,6 +99,10 @@ namespace Swasana
             {
                 Pesan("Username tidak dikenali server. Untuk Supabase, formatnya postgres.<id-project>, lihat menu Connect di dashboard.");
             }
+            catch (InvalidOperationException ex) when (ex.InnerException is PostgresException)
+            {
+                Pesan(ex.Message);
+            }
             catch (Exception ex) when (ex is NpgsqlException { InnerException: System.Net.Sockets.SocketException } or System.Net.Sockets.SocketException)
             {
                 Pesan(builder.SslMode == SslMode.Require
