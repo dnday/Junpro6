@@ -35,7 +35,7 @@ Aplikasi cuaca pada umumnya hanya menampilkan angka mentah (suhu, kelembapan, cu
 | Lokasi saya | Memakai layanan lokasi Windows, lalu nama tempatnya dicari otomatis |
 | Lokasi favorit | Simpan lokasi dengan tombol ☆, cek cuacanya sekali klik |
 | Prakiraan | Per jam (8 jam) dan 7 hari ke depan |
-| Status risiko | Aman / Waspada / Bahaya dari 5 aturan berbasis BMKG, WHO, NOAA, dan US EPA, ditampilkan beserta nilai yang dinilai |
+| Status risiko | Aman / Waspada / Bahaya dari 6 aturan berbasis BMKG, WHO, NOAA, dan US EPA, termasuk peringatan dini resmi BMKG, ditampilkan beserta nilai yang dinilai |
 | Saran tindakan | Kartu saran per kategori (aktivitas, kesehatan, perlindungan diri) |
 | Riwayat | Semua pengecekan tersimpan, bisa dicari per lokasi dan disaring per status, dengan grafik tren suhu harian dan ekspor ke CSV |
 | Database | PostgreSQL lokal atau database online (Supabase, cukup tempel URI); database dan tabel dibuat otomatis |
@@ -62,6 +62,10 @@ Aplikasi cuaca pada umumnya hanya menampilkan angka mentah (suhu, kelembapan, cu
 
 ![Alice Springs](docs/pengujian/T14-hasil-alice-springs.png)
 
+**Peringatan dini resmi BMKG ikut dinilai (lokasi di Indonesia)**
+
+![Peringatan BMKG](docs/pengujian/T23-peringatan-bmkg.png)
+
 **Riwayat dan grafik tren suhu harian**
 
 ![Riwayat](docs/pengujian/T16-riwayat-dan-tren.png)
@@ -79,7 +83,7 @@ Kebutuhan: Windows 10 (versi 2004+) / 11 64-bit dan koneksi internet. Panduan le
 
 ## Aturan risiko
 
-Status akhir adalah tingkat tertinggi dari lima aturan. Setiap aturan adalah class turunan dari `RiskRule` (inheritance) yang mengisi method `Evaluate()` dengan caranya sendiri (polymorphism). Ambang tiap aturan diambil dari peraturan BMKG, pedoman resmi, dan jurnal.
+Status akhir adalah tingkat tertinggi dari enam aturan. Setiap aturan adalah class turunan dari `RiskRule` (inheritance) yang mengisi method `Evaluate()` dengan caranya sendiri (polymorphism). Ambang tiap aturan diambil dari peraturan BMKG, pedoman resmi, dan jurnal.
 
 | Aturan | Waspada | Bahaya | Rujukan |
 |---|---|---|---|
@@ -88,8 +92,9 @@ Status akhir adalah tingkat tertinggi dari lima aturan. Setiap aturan adalah cla
 | Indeks UV | sangat tinggi, 8–10 | ekstrem, mulai 11 | [3], [4] |
 | Heat index (dari suhu dan kelembapan) | *extreme caution*, 32–41 °C | *danger*, mulai 41 °C | [5], [6] |
 | Kualitas udara (US AQI) | tidak sehat bagi kelompok sensitif, 101–150 | tidak sehat, mulai 151 | [7], [8] |
+| Peringatan dini BMKG (khusus Indonesia) | ada peringatan aktif di lokasi | peringatan berkeparahan *Severe* atau *Extreme* | [9], [10] |
 
-Aturan suhu udara saja (di atas 33/35 °C) dihapus karena ambang itu tidak ada di peraturan BMKG maupun jurnal; BMKG mendefinisikan suhu ekstrem sebagai penyimpangan dari normal setempat. Penilaian panas memakai heat index, yang menggabungkan suhu dan kelembapan.
+Aturan suhu udara saja (di atas 33/35 °C) dihapus karena ambang itu tidak ada di peraturan BMKG maupun jurnal; BMKG mendefinisikan suhu ekstrem sebagai penyimpangan dari normal setempat. Penilaian panas memakai heat index, yang menggabungkan suhu dan kelembapan. Peringatan dini BMKG diambil dari feed resmi BMKG (format CAP): aplikasi mengecek apakah koordinat lokasi berada di dalam polygon wilayah peringatan yang masih berlaku.
 
 ### Rujukan
 
@@ -101,6 +106,8 @@ Aturan suhu udara saja (di atas 33/35 °C) dihapus karena ambang itu tidak ada d
 6. Anderson, G. B., Bell, M. L., & Peng, R. D. (2013). Methods to calculate the heat index as an exposure metric in environmental health research. *Environmental Health Perspectives, 121*(10), 1111–1119. https://doi.org/10.1289/ehp.1206273
 7. U.S. Environmental Protection Agency. (2018). *Technical Assistance Document for the Reporting of Daily Air Quality – the Air Quality Index (AQI)* (EPA-454/B-18-007).
 8. Plaia, A., & Ruggieri, M. (2011). Air quality indices: a review. *Reviews in Environmental Science and Bio/Technology, 10*(2), 165–179. https://doi.org/10.1007/s11157-010-9227-2
+9. Badan Meteorologi, Klimatologi, dan Geofisika. (2022). *Peraturan BMKG Nomor 9 Tahun 2022 tentang Peringatan Dini Cuaca Ekstrem*. Data: https://www.bmkg.go.id/alerts/nowcast/id
+10. OASIS. (2010). *Common Alerting Protocol Version 1.2*. OASIS Standard. http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html
 
 ## Rancangan sistem
 
@@ -143,7 +150,7 @@ Enam tabel di PostgreSQL. Database, tabel, dan data awal dibuat otomatis oleh ap
 
 ### Layanan dan aturan risiko
 
-`RiskEvaluator` menyimpan lima objek turunan `RiskRule` dalam satu daftar dan memanggil `Evaluate()` milik masing-masing (polymorphism).
+`RiskEvaluator` menyimpan enam objek turunan `RiskRule` dalam satu daftar dan memanggil `Evaluate()` milik masing-masing (polymorphism).
 
 ![Class diagram layanan](docs/diagram/class-layanan.png)
 
@@ -160,7 +167,7 @@ Sumber semua diagram (format Mermaid) ada di folder [`docs/diagram`](https://git
 |---|---|
 | Aplikasi | C#, .NET 10, Windows Forms |
 | Basis data | PostgreSQL (lokal) atau Supabase (online), driver Npgsql |
-| Data cuaca | Open-Meteo: Geocoding, Forecast, Air Quality |
+| Data cuaca | Open-Meteo: Geocoding, Forecast, Air Quality; BMKG: peringatan dini cuaca (CAP) |
 | Lokasi | Layanan lokasi Windows, BigDataCloud (nama tempat) |
 | Tampilan | Ikon Meteocons, animasi FluentTransitions |
 | Pengujian | xUnit, UI Automation |
@@ -191,6 +198,7 @@ Menjalankan dari kode sumber: `dotnet run --project Swasana`; menjalankan test: 
 ## Kredit
 
 - Data cuaca, kualitas udara, dan geocoding: [Open-Meteo](https://open-meteo.com) (CC BY 4.0)
+- Peringatan dini cuaca: [BMKG](https://www.bmkg.go.id/alerts/nowcast/id)
 - Nama tempat dari koordinat: [BigDataCloud](https://www.bigdatacloud.com)
 - Ikon cuaca: [Meteocons](https://github.com/basmilius/meteocons) oleh Bas Milius (MIT)
 - Animasi: [FluentTransitions](https://github.com/awaescher/FluentTransitions) (MIT)

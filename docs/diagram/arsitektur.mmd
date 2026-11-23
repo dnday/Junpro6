@@ -8,7 +8,7 @@ flowchart LR
     end
     subgraph SV["Layanan"]
         WS[WeatherService]
-        RE["RiskEvaluator + 5 RiskRule"]
+        RE["RiskEvaluator + 6 RiskRule"]
         AR[ActionRecommender]
         WH[WeatherHistoryManager]
         LP[LokasiPerangkat]
@@ -22,6 +22,7 @@ flowchart LR
     DB[("PostgreSQL / Supabase")]
     OM(["Open-Meteo: Geocoding, Forecast, Air Quality"])
     BD(["BigDataCloud: nama tempat"])
+    BM(["BMKG: peringatan dini cuaca (CAP)"])
     GPS(["Layanan lokasi Windows"])
 
     FK --> DS
@@ -29,7 +30,7 @@ flowchart LR
     FU --> FC & FR
     FC --> WS & RE & AR & WH & LP & RP
     FR --> WH & EX
-    WS --> OM & BD
+    WS --> OM & BD & BM
     LP --> GPS
     WH --> RP
     AR & WH & RP --> DC

@@ -31,6 +31,16 @@ classDiagram
     class KualitasUdaraRule {
         +Evaluate(WeatherData) RiskLevel
     }
+    class PeringatanBmkgRule {
+        +Evaluate(WeatherData) RiskLevel
+    }
+    class PeringatanBmkg {
+        <<static>>
+        +CariAsync(lat, lon) Task~PeringatanCuaca~
+        +BacaCap(xml)$ PeringatanCuaca
+        +DiDalam(polygon, lat, lon)$ bool
+        +TingkatRisiko(keparahan)$ RiskLevel
+    }
     class RiskEvaluator {
         -List~RiskRule~ rules
         +evaluateRisk(WeatherData) RiskLevel
@@ -79,4 +89,7 @@ classDiagram
     RiskRule <|-- UvRule
     RiskRule <|-- HeatIndexRule
     RiskRule <|-- KualitasUdaraRule
-    RiskEvaluator o-- "5" RiskRule
+    RiskRule <|-- PeringatanBmkgRule
+    RiskEvaluator o-- "6" RiskRule
+    PeringatanBmkgRule ..> PeringatanBmkg
+    WeatherService ..> PeringatanBmkg

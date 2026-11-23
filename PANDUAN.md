@@ -85,7 +85,7 @@ Skema SQL lengkap ada di `swasana_schema.sql` jika ingin dijalankan manual lewat
 
 ### Aturan risiko
 
-Status akhir = tingkat tertinggi dari lima aturan berikut. Ambangnya diambil dari peraturan BMKG, pedoman resmi, dan jurnal.
+Status akhir = tingkat tertinggi dari enam aturan berikut. Ambangnya diambil dari peraturan BMKG, pedoman resmi, dan jurnal. Kartu status menampilkan satu chip per aturan (✓ berarti aman) dan rincian aturan yang memicu.
 
 | Aturan | Waspada | Bahaya | Rujukan |
 |---|---|---|---|
@@ -94,8 +94,9 @@ Status akhir = tingkat tertinggi dari lima aturan berikut. Ambangnya diambil dar
 | Indeks UV | sangat tinggi, 8–10 | ekstrem, mulai 11 | [3], [4] |
 | Heat index (dari suhu dan kelembapan) | *extreme caution*, 32–41 °C | *danger*, mulai 41 °C | [5], [6] |
 | Kualitas udara (US AQI) | tidak sehat bagi kelompok sensitif, 101–150 | tidak sehat, mulai 151 | [7], [8] |
+| Peringatan dini BMKG (khusus Indonesia) | ada peringatan aktif di lokasi | peringatan berkeparahan *Severe* atau *Extreme* | [9], [10] |
 
-Aturan suhu udara saja (di atas 33/35 °C) dihapus karena ambang itu tidak ada di peraturan BMKG maupun jurnal; BMKG mendefinisikan suhu ekstrem sebagai penyimpangan dari normal setempat. Penilaian panas memakai heat index, yang menggabungkan suhu dan kelembapan.
+Aturan suhu udara saja (di atas 33/35 °C) dihapus karena ambang itu tidak ada di peraturan BMKG maupun jurnal; BMKG mendefinisikan suhu ekstrem sebagai penyimpangan dari normal setempat. Penilaian panas memakai heat index, yang menggabungkan suhu dan kelembapan. Peringatan dini BMKG diambil dari feed resmi BMKG (format CAP): aplikasi mengecek apakah koordinat lokasi berada di dalam polygon wilayah peringatan yang masih berlaku.
 
 **Rujukan**
 
@@ -107,6 +108,8 @@ Aturan suhu udara saja (di atas 33/35 °C) dihapus karena ambang itu tidak ada d
 6. Anderson, G. B., Bell, M. L., & Peng, R. D. (2013). Methods to calculate the heat index as an exposure metric in environmental health research. *Environmental Health Perspectives, 121*(10), 1111–1119. https://doi.org/10.1289/ehp.1206273
 7. U.S. Environmental Protection Agency. (2018). *Technical Assistance Document for the Reporting of Daily Air Quality – the Air Quality Index (AQI)* (EPA-454/B-18-007).
 8. Plaia, A., & Ruggieri, M. (2011). Air quality indices: a review. *Reviews in Environmental Science and Bio/Technology, 10*(2), 165–179. https://doi.org/10.1007/s11157-010-9227-2
+9. Badan Meteorologi, Klimatologi, dan Geofisika. (2022). *Peraturan BMKG Nomor 9 Tahun 2022 tentang Peringatan Dini Cuaca Ekstrem*. Data: https://www.bmkg.go.id/alerts/nowcast/id
+10. OASIS. (2010). *Common Alerting Protocol Version 1.2*. OASIS Standard. http://docs.oasis-open.org/emergency/cap/v1.2/CAP-v1.2-os.html
 
 ### Animasi
 
