@@ -55,7 +55,7 @@ namespace Swasana
             tbDatabase.Text = uri.Database;
             tbUsername.Text = uri.Username;
             if (!string.IsNullOrEmpty(uri.Password)) tbPassword.Text = uri.Password;
-            Pesan(string.IsNullOrEmpty(uri.Password) ? "Data dari URI sudah diisi. Tinggal ketik password database." : "Data dari URI sudah diisi.", error: false);
+            Pesan(string.IsNullOrEmpty(uri.Password) ? "Data koneksi sudah diisi. Tinggal ketik password database." : "Data koneksi sudah diisi. Klik Sambungkan.", error: false);
             tbPassword.Focus();
         }
 

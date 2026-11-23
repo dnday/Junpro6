@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Npgsql;
 
 namespace Swasana.Data;
@@ -39,12 +39,24 @@ public static class DatabaseSetup
     public static SslMode PilihSsl(string host) =>
         host is "localhost" or "127.0.0.1" or "::1" ? SslMode.Prefer : SslMode.Require;
 
-    // Membaca URI koneksi seperti yang diberikan Supabase:
-    //   postgresql://user:password@host:5432/postgres
+    // Membaca teks koneksi yang ditempel ke kolom Host, dalam dua format:
+    //   URI Supabase       : postgresql://user:password@host:5432/postgres
+    //   connection string  : Host=...;Port=5432;Database=postgres;Username=...;Password=...;SSL Mode=Require
     // Password berupa placeholder ([YOUR-PASSWORD]) diabaikan supaya diisi sendiri.
     public static NpgsqlConnectionStringBuilder? BacaUri(string teks)
     {
         teks = teks.Trim();
+        if (teks.Contains('=') && teks.Contains(';'))
+        {
+            try
+            {
+                var b = new NpgsqlConnectionStringBuilder(teks);
+                if (string.IsNullOrEmpty(b.Host)) return null;
+                if (b.Password?.StartsWith("[") == true) b.Password = "";
+                return b;
+            }
+            catch (ArgumentException) { return null; }   // kata kunci tidak dikenal Npgsql
+        }
         if (!teks.StartsWith("postgres://") && !teks.StartsWith("postgresql://")) return null;
         if (!Uri.TryCreate(teks, UriKind.Absolute, out var uri) || uri.Host.Length == 0) return null;
 
