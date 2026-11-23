@@ -8,6 +8,8 @@ Junior Project (Teknik Basis Data, Pemrograman Berbasis Objek), Departemen Tekni
 
 ![Cek cuaca](docs/pengujian/T11-hasil-sleman.png)
 
+**[▶ Tonton video demo (±2 menit)](https://dnday.github.io/Junpro6/demo/SWASANA-demo.mp4)**: masuk, saran lokasi, status risiko, peringatan dini BMKG, favorit, prakiraan 7 hari, dan riwayat.
+
 ## Daftar isi
 - [Latar belakang](#latar-belakang)
 - [Fitur](#fitur)
