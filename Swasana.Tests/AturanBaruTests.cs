@@ -42,11 +42,11 @@ public class AturanBaruTests
     }
 
     [Fact]
-    public void RiskEvaluator_MemakaiLimaAturan()
+    public void RiskEvaluator_MemakaiEnamAturan()
     {
         var data = new WeatherData { Temperature = 28, Humidity = 50, Aqi = 125 };
         var evaluator = new RiskEvaluator();
-        Assert.Equal(5, evaluator.rincian(data).Count);
+        Assert.Equal(6, evaluator.rincian(data).Count);
         Assert.Equal(RiskLevel.Waspada, evaluator.evaluateRisk(data));   // naik karena kualitas udara saja
     }
 

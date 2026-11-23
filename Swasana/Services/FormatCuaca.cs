@@ -1,4 +1,4 @@
-using Swasana.Models;
+﻿using Swasana.Models;
 
 namespace Swasana.Services;
 
@@ -30,6 +30,7 @@ public static class FormatCuaca
         "Indeks UV" => $"{d.UvIndex:0.#}",
         "Heat index" => $"{HeatIndexRule.Hitung(d.Temperature, d.Humidity):0.#}°C",
         "Kualitas udara" => d.Aqi is int a ? $"AQI {a}" : "tidak tersedia",
+        "Peringatan BMKG" => d.PeringatanBmkg is { } p ? $"{p.Kejadian} s.d. {p.Berakhir.ToLocalTime():HH:mm}" : "tidak ada",
         _ => "-"
     };
 }

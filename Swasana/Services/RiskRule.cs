@@ -116,6 +116,18 @@ public class HeatIndexRule : RiskRule
     }
 }
 
+// Peringatan dini cuaca resmi BMKG yang sedang berlaku di lokasi (khusus Indonesia).
+// Keparahan CAP Severe/Extreme -> Bahaya, peringatan lain -> Waspada.
+public class PeringatanBmkgRule : RiskRule
+{
+    public PeringatanBmkgRule() : base("Peringatan BMKG") { }
+
+    public override RiskLevel Evaluate(WeatherData data)
+    {
+        return data.PeringatanBmkg is { } p ? PeringatanBmkg.TingkatRisiko(p.Keparahan) : RiskLevel.Aman;
+    }
+}
+
 // Kualitas udara (US AQI): 101-150 tidak sehat bagi kelompok sensitif -> Waspada, 151+ tidak sehat -> Bahaya
 public class KualitasUdaraRule : RiskRule
 {

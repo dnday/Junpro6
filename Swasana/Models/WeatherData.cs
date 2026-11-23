@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Swasana.Services;
 
 namespace Swasana.Models;
@@ -23,6 +23,7 @@ public class WeatherData
     public List<PrakiraanHari> Daily { get; set; } = new List<PrakiraanHari>();
     public int? Aqi { get; set; }             // US AQI dari Open-Meteo Air Quality, null kalau tidak tersedia
     public double? Pm25 { get; set; }         // µg/m³
+    public PeringatanCuaca? PeringatanBmkg { get; set; }   // peringatan dini BMKG yang berlaku, null kalau tidak ada
 
     // Ambil cuaca terkini lokasi dari Open-Meteo Web API
     public static async Task<WeatherData> fetchFromAPI(Location location)

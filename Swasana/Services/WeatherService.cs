@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.Json;
 using Swasana.Models;
 
@@ -67,13 +67,20 @@ public class WeatherService
             latitude, longitude);
 
         // Cuaca dan kualitas udara diambil bersamaan; kualitas udara boleh gagal tanpa menggagalkan cuaca
+        // Peringatan BMKG juga boleh gagal: penilaian lain tetap berjalan
         var tugasUdara = http.GetStringAsync(urlUdara);
+        var tugasBmkg = PeringatanBmkg.CariAsync(latitude, longitude);
         var data = ParseCurrent(await http.GetStringAsync(url).ConfigureAwait(false));
         try
         {
             (data.Aqi, data.Pm25) = ParseAirQuality(await tugasUdara.ConfigureAwait(false));
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException) { }
+        try
+        {
+            data.PeringatanBmkg = await tugasBmkg.ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or System.Xml.XmlException or FormatException or IndexOutOfRangeException) { }
         return data;
     }
 

@@ -15,7 +15,8 @@ public class RiskEvaluator
             new HujanAnginRule(),
             new UvRule(),
             new HeatIndexRule(),
-            new KualitasUdaraRule()
+            new KualitasUdaraRule(),
+            new PeringatanBmkgRule()
         };
     }
 

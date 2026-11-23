@@ -25,7 +25,7 @@ public class RiskEvaluatorTests
     public void Rincian_BerisiSemuaAturan()
     {
         var rincian = evaluator.rincian(new WeatherData { Temperature = 34, Humidity = 75 });
-        Assert.Equal(5, rincian.Count);
+        Assert.Equal(6, rincian.Count);
         Assert.Contains(rincian, r => r.Nama == "Heat index" && r.Level == RiskLevel.Bahaya);
     }
 }
