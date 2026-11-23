@@ -100,10 +100,37 @@ public static class DatabaseSetup
     // supaya database dari versi lama otomatis mendapat kolom/tabel baru.
     public static void EnsureSchema(string connectionString)
     {
+        try
+        {
+            using var db = new NpgsqlConnection(connectionString);
+            db.Open();
+            using var schema = new NpgsqlCommand(ReadSchema(), db);
+            schema.ExecuteNonQuery();
+        }
+        catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.InsufficientPrivilege)
+        {
+            // Akun berhak terbatas (misalnya swasana_app di Supabase) tidak boleh membuat tabel.
+            // Itu tidak masalah selama tabel SWASANA sudah disiapkan oleh pemilik database.
+            if (!SkemaLengkap(connectionString))
+                throw new InvalidOperationException(
+                    "Akun database ini tidak boleh membuat tabel, dan tabel SWASANA belum lengkap. " +
+                    "Jalankan swasana_schema.sql dengan akun pemilik database (misalnya postgres) dulu, lalu sambungkan lagi.", ex);
+        }
+    }
+
+    // Keenam tabel SWASANA dan kolom terbaru (is_favorite) sudah ada dan bisa diakses akun ini
+    public static bool SkemaLengkap(string connectionString)
+    {
         using var db = new NpgsqlConnection(connectionString);
         db.Open();
-        using var schema = new NpgsqlCommand(ReadSchema(), db);
-        schema.ExecuteNonQuery();
+        using var cek = new NpgsqlCommand("""
+            SELECT (SELECT count(*) FROM information_schema.tables
+                    WHERE table_schema = 'public'
+                      AND table_name IN ('users','locations','risk_levels','recommendations','weather_data','search_history')) = 6
+               AND EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_schema = 'public' AND table_name = 'locations' AND column_name = 'is_favorite')
+            """, db);
+        return cek.ExecuteScalar() is true;
     }
 
     private static string ReadSchema() =>
