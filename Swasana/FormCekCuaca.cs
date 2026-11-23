@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.Text.Json;
@@ -420,11 +420,11 @@ namespace Swasana
             lblTerasa.Text = $"Terasa seperti {data.ApparentTemperature:0}°";
 
             // Kotak detail
-            lblKelembapan.Text = $"{data.Humidity:0} %";
-            lblAngin.Text = $"{data.WindSpeed:0.#} km/j";
-            lblHujan.Text = $"{data.Rainfall:0.#} mm/j";
-            lblUv.Text = $"{data.UvIndex:0.#} {FormatCuaca.KategoriUv(data.UvIndex)}";
-            lblUdara.Text = data.Aqi is int aqi ? $"{aqi} {FormatCuaca.KategoriAqi(aqi)}" : "-";
+            IsiPas(lblKelembapan, $"{data.Humidity:0} %");
+            IsiPas(lblAngin, $"{data.WindSpeed:0.#} km/j");
+            IsiPas(lblHujan, $"{data.Rainfall:0.#} mm/j");
+            IsiPas(lblUv, $"{data.UvIndex:0.#} {FormatCuaca.KategoriUv(data.UvIndex)}");
+            IsiPas(lblUdara, data.Aqi is int aqi ? $"{aqi} {FormatCuaca.KategoriAqi(aqi)}" : "-");
 
             dataTerakhir = data;
             TampilkanPrakiraan();
@@ -433,15 +433,33 @@ namespace Swasana
             Flip3D.Putar(pnlRisiko, () =>
             {
                 pnlRisiko.BackColor = Tema.WarnaStatus(data.RiskLevel);
-                foreach (var l in new[] { lblRisikoJudul, lblStatus, lblRincian }) l.ForeColor = Tema.TeksStatus(data.RiskLevel);
+                foreach (var l in new Control[] { lblRisikoJudul, lblStatus, lblRincian }) l.ForeColor = Tema.TeksStatus(data.RiskLevel);
                 picStatus.Image = Ikon.Status(data.RiskLevel);
                 picStatus.Visible = true;
                 lblStatus.Text = data.RiskLevel.ToString();
-                lblRincian.Text = string.Join("\n", riskEvaluator.rincian(data).Select(r => $"{r.Nama} ({FormatCuaca.NilaiAturan(r.Nama, data)}): {r.Level}"));
+                lblRincian.Isi(riskEvaluator.rincian(data).Select(r => (r.Nama, FormatCuaca.NilaiAturan(r.Nama, data), r.Level)).ToList());
             });
 
             TampilkanRekomendasi(data.RiskLevel);
-            lblSumber.Text = $"Data cuaca Open-Meteo pukul {data.Timestamp:HH:mm} waktu setempat.";
+            lblSumber.Text = $"Data cuaca Open-Meteo pukul {data.Timestamp:HH:mm} waktu setempat."
+                + (data.PeringatanBmkg != null ? " Peringatan dini dari BMKG." : "");
+        }
+
+        // Isi nilai kotak detail; font dikecilkan (paling kecil 8 pt) kalau teksnya lebih lebar dari kotak,
+        // misalnya "8,1 sangat tinggi". Font asli disimpan di Tag supaya bisa kembali besar.
+        private static void IsiPas(Label label, string teks)
+        {
+            var asli = label.Tag as Font ?? label.Font;
+            label.Tag = asli;
+            if (!ReferenceEquals(label.Font, asli)) { var lama = label.Font; label.Font = asli; lama.Dispose(); }
+            label.Text = teks;
+            var batas = label.Parent!.ClientSize.Width - label.Left - 2;
+            for (var ukuran = asli.Size - 0.5f; ukuran >= 8 && TextRenderer.MeasureText(teks, label.Font).Width > batas; ukuran -= 0.5f)
+            {
+                var lama = label.Font;
+                label.Font = new Font(asli.FontFamily, ukuran, asli.Style);
+                if (!ReferenceEquals(lama, asli)) lama.Dispose();
+            }
         }
 
         // ===== Prakiraan: per jam atau 7 hari =====

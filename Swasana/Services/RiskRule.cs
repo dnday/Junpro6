@@ -1,9 +1,9 @@
-using Swasana.Models;
+﻿using Swasana.Models;
 
 namespace Swasana.Services;
 
 // Induk seluruh aturan risiko. Tiap aturan menilai data cuaca dari sudut pandangnya
-// sendiri (suhu saja, hujan saja, atau gabungan hujan dan angin).
+// sendiri (hujan, hujan dan angin, UV, heat index, atau kualitas udara).
 public abstract class RiskRule
 {
     // public: nama aturan boleh dibaca class lain untuk ditampilkan ke layar
@@ -27,35 +27,26 @@ public abstract class RiskRule
     }
 }
 
-// Suhu di atas 33 C -> Waspada, di atas 35 C -> Bahaya
-public class SuhuRule : RiskRule
-{
-    private const double BatasWaspada = 33;   // C
-    private const double BatasBahaya = 35;    // C
-
-    public SuhuRule() : base("Suhu udara") { }
-
-    public override RiskLevel Evaluate(WeatherData data)
-    {
-        return Klasifikasi(data.Temperature, BatasWaspada, BatasBahaya);
-    }
-}
-
-// Hujan sedang (mulai 5 mm/jam) -> Waspada.
-// Hujan saja tidak pernah langsung Bahaya, sesuai aturan pada Modul 1.
+// Intensitas hujan per jam menurut kategori BMKG:
+// lebat (10 sampai di bawah 20 mm/jam) -> Waspada, mulai 20 mm/jam -> Bahaya.
+// Batas 20 mm/jam juga kriteria hujan lebat pada cuaca ekstrem BMKG.
 public class HujanRule : RiskRule
 {
-    private const double HujanSedang = 5;     // mm/jam
+    private const double HujanLebat = 10;        // mm/jam
+    private const double HujanSangatLebat = 20;  // mm/jam
 
     public HujanRule() : base("Curah hujan") { }
 
     public override RiskLevel Evaluate(WeatherData data)
     {
-        return data.Rainfall >= HujanSedang ? RiskLevel.Waspada : RiskLevel.Aman;
+        if (data.Rainfall >= HujanSangatLebat) return RiskLevel.Bahaya;
+        if (data.Rainfall >= HujanLebat) return RiskLevel.Waspada;
+        return RiskLevel.Aman;
     }
 }
 
 // Hujan lebat yang disertai angin kencang -> Bahaya.
+// Angin kencang = di atas 25 knot (45 km/jam), kriteria cuaca ekstrem BMKG.
 // Aturan ini membaca dua parameter sekaligus, jadi isi Evaluate()-nya berbeda
 // dari dua aturan di atas walaupun dipanggil lewat method yang sama.
 public class HujanAnginRule : RiskRule
@@ -67,7 +58,7 @@ public class HujanAnginRule : RiskRule
 
     public override RiskLevel Evaluate(WeatherData data)
     {
-        return data.Rainfall >= HujanLebat && data.WindSpeed >= AnginKencang
+        return data.Rainfall >= HujanLebat && data.WindSpeed > AnginKencang
             ? RiskLevel.Bahaya
             : RiskLevel.Aman;
     }
@@ -89,7 +80,9 @@ public class UvRule : RiskRule
     }
 }
 
-// Heat index: suhu yang dirasakan tubuh dari gabungan suhu dan kelembapan (rumus NOAA).
+// Heat index: suhu yang dirasakan tubuh dari gabungan suhu dan kelembapan (rumus NOAA,
+// Rothfusz 1990, turunan apparent temperature Steadman 1979). Aturan inilah yang menilai panas,
+// karena suhu udara saja tidak menggambarkan beban panas pada tubuh.
 // 32-41 C "extreme caution" -> Waspada, 41 C ke atas "danger" -> Bahaya
 public class HeatIndexRule : RiskRule
 {
@@ -120,6 +113,18 @@ public class HeatIndexRule : RiskRule
                 hi += (rh - 85) / 10 * ((87 - t) / 5);
         }
         return (hi - 32) * 5 / 9;
+    }
+}
+
+// Peringatan dini cuaca resmi BMKG yang sedang berlaku di lokasi (khusus Indonesia).
+// Keparahan CAP Severe/Extreme -> Bahaya, peringatan lain -> Waspada.
+public class PeringatanBmkgRule : RiskRule
+{
+    public PeringatanBmkgRule() : base("Peringatan BMKG") { }
+
+    public override RiskLevel Evaluate(WeatherData data)
+    {
+        return data.PeringatanBmkg is { } p ? PeringatanBmkg.TingkatRisiko(p.Keparahan) : RiskLevel.Aman;
     }
 }
 

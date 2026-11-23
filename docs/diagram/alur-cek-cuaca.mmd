@@ -1,0 +1,19 @@
+flowchart TD
+    A([Buka Cek cuaca]) --> B{Cara memilih lokasi}
+    B -->|Ketik nama kota| C[Saran lokasi dari Open-Meteo Geocoding]
+    B -->|Lokasi saya| D[Ambil koordinat dari layanan lokasi Windows]
+    B -->|Tombol favorit| E[Ambil lokasi favorit dari database]
+    C --> F[Isi nama dan koordinat]
+    D --> F
+    E --> F
+    F --> G{Koordinat valid?}
+    G -->|Tidak| H[Tampilkan pesan di halaman] --> B
+    G -->|Ya| I[Ambil cuaca, prakiraan, dan kualitas udara dari Open-Meteo, serta peringatan dini BMKG]
+    I --> J{Berhasil?}
+    J -->|Tidak| K[Pesan: periksa koneksi internet] --> B
+    J -->|Ya| L[RiskEvaluator menjalankan 6 aturan risiko]
+    L --> M[Status = tingkat tertinggi: Aman / Waspada / Bahaya]
+    M --> N[ActionRecommender mengambil saran dari database]
+    N --> O[Tampilkan hasil, adegan animasi, dan kartu saran]
+    O --> P[(Simpan ke locations, weather_data, search_history)]
+    P --> Q([Selesai])

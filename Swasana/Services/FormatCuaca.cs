@@ -1,4 +1,4 @@
-using Swasana.Models;
+﻿using Swasana.Models;
 
 namespace Swasana.Services;
 
@@ -25,12 +25,12 @@ public static class FormatCuaca
     // Nilai yang dinilai tiap aturan, supaya alasan status terbaca jelas
     public static string NilaiAturan(string nama, WeatherData d) => nama switch
     {
-        "Suhu udara" => $"{d.Temperature:0.#}°C",
         "Curah hujan" => $"{d.Rainfall:0.#} mm/j",
         "Hujan + angin" => $"{d.Rainfall:0.#} mm/j, {d.WindSpeed:0.#} km/j",
         "Indeks UV" => $"{d.UvIndex:0.#}",
         "Heat index" => $"{HeatIndexRule.Hitung(d.Temperature, d.Humidity):0.#}°C",
         "Kualitas udara" => d.Aqi is int a ? $"AQI {a}" : "tidak tersedia",
+        "Peringatan BMKG" => d.PeringatanBmkg is { } p ? $"{p.Kejadian} s.d. {p.Berakhir.ToLocalTime():HH:mm}" : "tidak ada",
         _ => "-"
     };
 }

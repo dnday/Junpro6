@@ -1,0 +1,114 @@
+classDiagram
+    direction LR
+    class User {
+        +int UserId
+        +string Username
+        +DateTime CreatedAt
+        +List~Location~ Locations
+    }
+    class Location {
+        +int LocationId
+        +int UserId
+        +string Name
+        +double Latitude
+        +double Longitude
+        +List~WeatherData~ WeatherDataList
+        +getCoordinates() (double, double)
+        +setLocation(lat, lon) void
+    }
+    class WeatherData {
+        +long WeatherId
+        +int LocationId
+        +RiskLevel RiskLevel
+        +double Temperature
+        +double Humidity
+        +double WindSpeed
+        +double Rainfall
+        +double ApparentTemperature
+        +double UvIndex
+        +int? Aqi
+        +int WeatherCode
+        +DateTime Timestamp
+        +List~PrakiraanJam~ Hourly
+        +List~PrakiraanHari~ Daily
+        +fetchFromAPI(Location)$ Task~WeatherData~
+        +toJSON() string
+    }
+    class SearchHistory {
+        +long HistoryId
+        +int UserId
+        +long WeatherId
+        +DateTime SearchedAt
+        +string CityName
+        +double Temperature
+        +RiskLevel RiskLevel
+    }
+    class RiskLevel {
+        <<enumeration>>
+        Aman = 1
+        Waspada = 2
+        Bahaya = 3
+    }
+    class PrakiraanJam {
+        <<record>>
+        +DateTime Waktu
+        +double Suhu
+        +int PeluangHujan
+        +int KodeCuaca
+    }
+    class PrakiraanHari {
+        <<record>>
+        +DateTime Tanggal
+        +double SuhuMaks
+        +double SuhuMin
+        +int PeluangHujan
+    }
+    class DatabaseContext {
+        -string connectionString
+        +connect() NpgsqlConnection
+        +executeQuery(sql, params) DataSet
+        +executeScalar(sql, params) object
+        +executeNonQuery(sql, params) int
+    }
+    class BaseRepository~T~ {
+        <<abstract>>
+        #DatabaseContext Context
+        #string TableName*
+        #string IdColumn*
+        +Insert(T entity)* T
+        #MapRow(DataRow row)* T
+        +GetAll() List~T~
+        +GetById(int id) T
+    }
+    class UserRepository {
+        +Insert(User) User
+        +FindByUsername(string) User
+    }
+    class LocationRepository {
+        +Insert(Location) Location
+        +GetByUser(int) List~Location~
+        +GetFavorites(int) List~Location~
+        +SetFavorite(int, Location, bool) void
+        +FindByUserAndCity(int, string) Location
+    }
+    class DatabaseSetup {
+        <<static>>
+        +LoadConnectionString() string
+        +KoneksiBawaan string
+        +BacaUri(string) NpgsqlConnectionStringBuilder
+        +PilihSsl(string host) SslMode
+        +EnsureDatabase(string) void
+        +EnsureSchema(string) void
+    }
+
+    User "1" o-- "*" Location
+    Location "1" o-- "*" WeatherData
+    WeatherData --> RiskLevel
+    WeatherData *-- PrakiraanJam
+    WeatherData *-- PrakiraanHari
+    SearchHistory --> RiskLevel
+    BaseRepository <|-- UserRepository
+    BaseRepository <|-- LocationRepository
+    BaseRepository o-- DatabaseContext
+    UserRepository ..> User
+    LocationRepository ..> Location
