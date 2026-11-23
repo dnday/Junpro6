@@ -50,15 +50,32 @@ public class WeatherServiceTests
     }
 
     [Fact]
-    public void ParseGeocode_AmbilHasilPertama()
+    public void PilihHasil_PetunjukProvinsiDanUrutanRelevansi()
     {
         const string json = """
-            {"results":[{"name":"Sleman","latitude":-7.7162,"longitude":110.3555,"admin1":"Daerah Istimewa Yogyakarta"}]}
+            {"results":[
+              {"name":"Rajabasa","latitude":22.1,"longitude":85.7,"admin1":"Jharkhand","country":"India","country_code":"IN"},
+              {"name":"Rajabasa","latitude":-5.4,"longitude":105.2,"admin1":"Provinsi Lampung","country":"Indonesia","country_code":"ID"}]}
             """;
-        var hasil = WeatherService.ParseGeocode(json);
-        Assert.NotNull(hasil);
-        Assert.Equal("Sleman, Daerah Istimewa Yogyakarta", hasil.Value.Name);
-        Assert.Equal(-7.7162, hasil.Value.Latitude);
+        var hasil = WeatherService.ParseHasil(json);
+        Assert.Equal("IN", WeatherService.PilihHasil(hasil, "")!.KodeNegara);        // tanpa petunjuk: paling relevan
+        Assert.Equal(-5.4, WeatherService.PilihHasil(hasil, "lampung")!.Latitude);   // "Rajabasa, Lampung"
+        Assert.Equal("ID", WeatherService.PilihHasil(hasil, "Indonesia")!.KodeNegara);
+        Assert.Null(WeatherService.PilihHasil(hasil, "Bengkulu"));                   // lanjut ke OpenStreetMap
+    }
+
+    [Fact]
+    public void ParseNominatim_LokasiKecamatan()
+    {
+        const string json = """
+            [{"lat":"-2.5272683","lon":"101.3269849","name":"Selagan Raya","display_name":"Selagan Raya, Mukomuko, Bengkulu, Indonesia",
+              "address":{"county":"Selagan Raya","state":"Bengkulu","country":"Indonesia","country_code":"id"}}]
+            """;
+        var s = WeatherService.ParseNominatim(json)!;
+        Assert.Equal("Selagan Raya, Bengkulu", s.NamaLengkap);
+        Assert.Equal("ID", s.KodeNegara);
+        Assert.Equal(101.3269849, s.Longitude);
+        Assert.Null(WeatherService.ParseNominatim("[]"));
     }
 
     [Fact]
@@ -80,12 +97,6 @@ public class WeatherServiceTests
     public void ParseSaran_TanpaHasil_ListKosong()
     {
         Assert.Empty(WeatherService.ParseSaran("""{"generationtime_ms":0.5}"""));
-    }
-
-    [Fact]
-    public void ParseGeocode_TidakDitemukan_Null()
-    {
-        Assert.Null(WeatherService.ParseGeocode("""{"generationtime_ms":0.5}"""));
     }
 }
 
@@ -109,6 +120,17 @@ public class IkonTests
     {
         foreach (var nama in new[] { "clear-day", "rain", "humidity", "wind", "raindrop", "code-red" })
             Assert.NotNull(Ikon.Muat(nama));
+    }
+
+    [Fact]
+    public void IkonCuacaPunyaAnimasi()
+    {
+        // Setiap ikon cuaca yang bisa tampil punya 90 frame animasi (6 detik, 15 fps) yang berulang
+        foreach (var kode in new[] { 0, 2, 3, 45, 51, 61, 65, 71, 95 })
+            foreach (var siang in new[] { true, false })
+                Assert.NotNull(Ikon.FrameAnimasi(Ikon.NamaCuaca(kode, siang), 0));
+        Assert.Same(Ikon.FrameAnimasi("rain", 0.0), Ikon.FrameAnimasi("rain", 6.0));
+        Assert.Null(Ikon.FrameAnimasi("not-available", 0));
     }
 }
 

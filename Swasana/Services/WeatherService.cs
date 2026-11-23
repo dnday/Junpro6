@@ -11,11 +11,53 @@ public class WeatherService
 {
     private static readonly HttpClient http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
 
-    public async Task<(string Name, double Latitude, double Longitude)?> FindCityAsync(string city)
+    // Nama lokasi yang diketik (tanpa memilih saran) -> satu lokasi.
+    // "Nama, Provinsi" dicocokkan dengan provinsinya. Kalau Open-Meteo tidak menemukan (misalnya nama
+    // kecamatan seperti "Selagan Raya"), dicari lewat OpenStreetMap Nominatim yang lebih lengkap untuk Indonesia.
+    public async Task<SaranLokasi?> FindCityAsync(string city)
     {
-        var url = "https://geocoding-api.open-meteo.com/v1/search?count=1&language=id&format=json&name="
-                  + Uri.EscapeDataString(city.Trim());
-        return ParseGeocode(await http.GetStringAsync(url).ConfigureAwait(false));
+        var bagian = city.Split(',', 2);
+        var nama = bagian[0].Trim();
+        var petunjuk = bagian.Length > 1 ? bagian[1].Trim() : "";
+
+        var url = "https://geocoding-api.open-meteo.com/v1/search?count=10&language=id&format=json&name="
+                  + Uri.EscapeDataString(nama);
+        var cocok = PilihHasil(ParseHasil(await http.GetStringAsync(url).ConfigureAwait(false)), petunjuk);
+        if (cocok != null) return cocok;
+
+        try
+        {
+            // Kebijakan Nominatim: User-Agent yang jelas dan hanya dipanggil saat pengguna menekan Cek cuaca
+            using var permintaan = new HttpRequestMessage(HttpMethod.Get,
+                "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&addressdetails=1&accept-language=id&q="
+                + Uri.EscapeDataString(city.Trim()));
+            permintaan.Headers.UserAgent.ParseAdd("SWASANA/1.3 (aplikasi cuaca desktop)");
+            using var jawaban = await http.SendAsync(permintaan).ConfigureAwait(false);
+            if (!jawaban.IsSuccessStatusCode) return null;
+            return ParseNominatim(await jawaban.Content.ReadAsStringAsync().ConfigureAwait(false));
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException) { return null; }
+    }
+
+    // Hasil pertama (urutan relevansi API), atau yang provinsi/negaranya cocok dengan petunjuk
+    public static SaranLokasi? PilihHasil(List<SaranLokasi> hasil, string petunjuk) =>
+        petunjuk.Length == 0
+            ? hasil.FirstOrDefault()
+            : hasil.FirstOrDefault(s => $"{s.Wilayah} {s.Negara}".Contains(petunjuk, StringComparison.OrdinalIgnoreCase)
+                                        || s.KodeNegara.Equals(petunjuk, StringComparison.OrdinalIgnoreCase));
+
+    public static SaranLokasi? ParseNominatim(string json)
+    {
+        using var doc = JsonDocument.Parse(json);
+        if (doc.RootElement.ValueKind != JsonValueKind.Array || doc.RootElement.GetArrayLength() == 0) return null;
+        var r = doc.RootElement[0];
+        string Ambil(JsonElement e, string kunci) => e.TryGetProperty(kunci, out var v) ? v.GetString() ?? "" : "";
+        var alamat = r.TryGetProperty("address", out var a) ? a : default;
+        string DariAlamat(string kunci) => alamat.ValueKind == JsonValueKind.Object ? Ambil(alamat, kunci) : "";
+        var nama = Ambil(r, "name");
+        if (nama.Length == 0) nama = Ambil(r, "display_name").Split(',')[0];
+        return new SaranLokasi(nama, DariAlamat("state"), DariAlamat("country"), DariAlamat("country_code").ToUpperInvariant(),
+            double.Parse(Ambil(r, "lat"), CultureInfo.InvariantCulture), double.Parse(Ambil(r, "lon"), CultureInfo.InvariantCulture));
     }
 
     // Saran lokasi saat pengguna mengetik (autocomplete), lokasi Indonesia diutamakan
@@ -39,7 +81,11 @@ public class WeatherService
         return tempat.Length == 0 ? null : wilayah.Length > 0 ? $"{tempat}, {wilayah}" : tempat;
     }
 
-    public static List<SaranLokasi> ParseSaran(string json)
+    // Saran untuk daftar: lokasi Indonesia didahulukan
+    public static List<SaranLokasi> ParseSaran(string json) =>
+        ParseHasil(json).OrderBy(s => s.KodeNegara == "ID" ? 0 : 1).ToList();   // stabil: urutan relevansi tetap terjaga
+
+    public static List<SaranLokasi> ParseHasil(string json)
     {
         using var doc = JsonDocument.Parse(json);
         if (!doc.RootElement.TryGetProperty("results", out var results)) return new List<SaranLokasi>();
@@ -49,9 +95,7 @@ public class WeatherService
             string Ambil(string kunci) => r.TryGetProperty(kunci, out var v) ? v.GetString() ?? "" : "";
             return new SaranLokasi(Ambil("name"), Ambil("admin1"), Ambil("country"), Ambil("country_code"),
                 r.GetProperty("latitude").GetDouble(), r.GetProperty("longitude").GetDouble());
-        })
-        .OrderBy(s => s.KodeNegara == "ID" ? 0 : 1)   // stabil: urutan relevansi dari API tetap terjaga
-        .ToList();
+        }).ToList();
     }
 
     public async Task<WeatherData> GetCurrentAsync(double latitude, double longitude)
@@ -91,20 +135,6 @@ public class WeatherService
         int? aqi = c.TryGetProperty("us_aqi", out var a) && a.ValueKind == JsonValueKind.Number ? a.GetInt32() : null;
         double? pm = c.TryGetProperty("pm2_5", out var p) && p.ValueKind == JsonValueKind.Number ? p.GetDouble() : null;
         return (aqi, pm);
-    }
-
-    // public static supaya bisa diuji tanpa internet (lihat Swasana.Tests)
-    public static (string Name, double Latitude, double Longitude)? ParseGeocode(string json)
-    {
-        using var doc = JsonDocument.Parse(json);
-        if (!doc.RootElement.TryGetProperty("results", out var results) || results.GetArrayLength() == 0)
-            return null;
-
-        var first = results[0];
-        var name = first.GetProperty("name").GetString() ?? "";
-        if (first.TryGetProperty("admin1", out var admin1) && admin1.GetString() is { Length: > 0 } province)
-            name += ", " + province;
-        return (name, first.GetProperty("latitude").GetDouble(), first.GetProperty("longitude").GetDouble());
     }
 
     public static WeatherData ParseCurrent(string json)

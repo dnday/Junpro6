@@ -45,7 +45,7 @@ namespace Swasana
         private readonly System.Windows.Forms.Timer timerAdegan = new System.Windows.Forms.Timer { Interval = 33 };   // ~30 fps
         private readonly System.Diagnostics.Stopwatch jamAdegan = System.Diagnostics.Stopwatch.StartNew();
         private double detikTerakhir;
-        private int? picCuacaTop;   // posisi asli ikon cuaca, titik tengah gerak melayang
+        private string namaIkonCuaca = "partly-cloudy-day";   // ikon yang sedang tampil, untuk animasinya
         private readonly List<(Label Nilai, Shimmer Kilau)> kerangka = new();
 
         // Animasi kartu rekomendasi: muncul bergantian sambil bergeser dari kanan
@@ -90,9 +90,8 @@ namespace Swasana
                 var sekarang = jamAdegan.Elapsed.TotalSeconds;
                 adegan.Tick(pnlHero.Size, Math.Min(sekarang - detikTerakhir, 0.1));
                 detikTerakhir = sekarang;
-                // Ikon cuaca melayang pelan naik-turun, terinspirasi ikon animasi Meteocons
-                picCuacaTop ??= picCuaca.Top;
-                picCuaca.Top = picCuacaTop.Value + (int)Math.Round(Math.Sin(sekarang * 2 * Math.PI / 3.2) * komponen.Px(4));
+                // Ikon cuaca beranimasi (sinar matahari berputar, awan bergeser, hujan turun) dari Meteocons
+                if (Ikon.FrameAnimasi(namaIkonCuaca, sekarang) is { } frame) picCuaca.Image = frame;
                 pnlHero.Invalidate();
             };
             FormClosed += (s, e) => { timerAdegan.Stop(); timerKartu.Stop(); timerSaran.Stop(); batalSaran?.Cancel(); batalSaran?.Dispose(); tip.Dispose(); };
@@ -187,8 +186,7 @@ namespace Swasana
                 return false;
             }
 
-            var (nama, lat, lon) = hasil.Value;
-            IsiLokasi(nama, lat, lon);
+            IsiLokasi(hasil.NamaLengkap, hasil.Latitude, hasil.Longitude);
             return true;
         }
 
@@ -412,7 +410,8 @@ namespace Swasana
             var (atas, bawah) = Tema.WarnaLangit(data.WeatherCode, data.IsDay);
             Animasi.Ubah(this, nameof(LangitAtas), atas, 600);
             Animasi.Ubah(this, nameof(LangitBawah), bawah, 600);
-            picCuaca.Image = Ikon.Muat(Ikon.NamaCuaca(data.WeatherCode, data.IsDay));
+            namaIkonCuaca = Ikon.NamaCuaca(data.WeatherCode, data.IsDay);
+            picCuaca.Image = Ikon.Muat(namaIkonCuaca);
             adegan.Atur(data.WeatherCode, data.IsDay, data.Temperature, data.WindSpeed, pnlHero.Size);
             adeganBerjalan = Animasi.Aktif;
             AturTimerAdegan();
