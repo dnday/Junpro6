@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -7,8 +7,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>Swasana</RootNamespace>
-    <Version>1.3.0</Version>
+    <Version>1.3.1</Version>
     <Product>SWASANA</Product>
+    <ApplicationIcon>swasana.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,6 +21,8 @@
   <ItemGroup>
     <EmbeddedResource Include="..\database\swasana_schema.sql" LogicalName="swasana_schema.sql" />
     <EmbeddedResource Include="Ikon\*.png" LogicalName="Ikon.%(Filename).png" />
+    <EmbeddedResource Include="swasana.ico" LogicalName="swasana.ico" />
+    <EmbeddedResource Include="IkonAnimasi\*.png" LogicalName="Animasi.%(Filename).png" />
     <!-- Koneksi database bawaan (Supabase). File ini di-ignore git karena berisi password; kalau tidak ada,
          aplikasi meminta pengaturan koneksi seperti biasa. -->
     <EmbeddedResource Include="koneksi-bawaan.txt" LogicalName="koneksi-bawaan.txt" Condition="Exists('koneksi-bawaan.txt')" />

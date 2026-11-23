@@ -1,4 +1,4 @@
-using Npgsql;
+﻿using Npgsql;
 using Swasana.Data;
 
 namespace Swasana
@@ -10,6 +10,7 @@ namespace Swasana
         public FormKoneksi()
         {
             InitializeComponent();
+            Icon = Tema.IkonAplikasi;
             Animasi.FadeIn(this);
             Animasi.Hover(btnSimpan, Tema.HoverUtama);
             Animasi.Hover(btnBatal, Tema.HoverSekunder);

@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Text;
 using Swasana.Data;
 using Swasana.Models;
@@ -18,6 +18,7 @@ namespace Swasana
         public FormRiwayat(DatabaseContext db, User user)
         {
             InitializeComponent();
+            Icon = Tema.IkonAplikasi;
             history = new WeatherHistoryManager(db);
             this.user = user;
             Animasi.FadeIn(this);
@@ -81,8 +82,32 @@ namespace Swasana
             return hasil;
         }
 
+        private int jumlahTampil;
+        private System.Windows.Forms.Timer? timerBaris;
+
+        // Baris tabel muncul satu per satu dari atas (maksimal 25 baris pertama, sisanya langsung tampil)
+        private void BarisBergiliran()
+        {
+            timerBaris?.Dispose();
+            timerBaris = null;
+            if (!Animasi.Aktif || dgvRiwayat.Rows.Count == 0) return;
+            dgvRiwayat.CurrentCell = null;
+            var jumlah = Math.Min(dgvRiwayat.Rows.Count, 25);
+            for (int i = 1; i < jumlah; i++) dgvRiwayat.Rows[i].Visible = false;
+            var berikut = 1;
+            timerBaris = new System.Windows.Forms.Timer { Interval = 28 };
+            timerBaris.Tick += (s, e) =>
+            {
+                if (berikut < jumlah && berikut < dgvRiwayat.Rows.Count) dgvRiwayat.Rows[berikut++].Visible = true;
+                else { timerBaris?.Dispose(); timerBaris = null; }
+            };
+            timerBaris.Start();
+        }
+
         private void TampilkanRiwayat()
         {
+            timerBaris?.Dispose();
+            timerBaris = null;
             var kataKunci = tbCari.Text.Trim();
             var kolomUrut = dgvRiwayat.SortedColumn;
             var arahUrut = dgvRiwayat.SortOrder;
@@ -103,7 +128,9 @@ namespace Swasana
                 dgvRiwayat.Sort(kolomUrut, arahUrut == SortOrder.Ascending ? ListSortDirection.Ascending : ListSortDirection.Descending);
 
             var jumlah = dgvRiwayat.Rows.Count;
-            lblJumlah.Text = $"{jumlah} data";
+            Animasi.Hitung(lblJumlah, jumlahTampil, jumlah, v => $"{v:0} data", $"{jumlah} data", 400);
+            jumlahTampil = jumlah;
+            BarisBergiliran();
             btnEkspor.Enabled = jumlah > 0;
             lblKosong.Visible = jumlah == 0;
             if (jumlah == 0 && !gagalMuat)

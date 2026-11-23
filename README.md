@@ -171,7 +171,7 @@ Sumber semua diagram (format Mermaid) ada di folder [`docs/diagram`](https://git
 | Aplikasi | C#, .NET 10, Windows Forms |
 | Basis data | PostgreSQL (lokal) atau Supabase (online), driver Npgsql |
 | Data cuaca | Open-Meteo: Geocoding, Forecast, Air Quality; BMKG: peringatan dini cuaca (CAP) |
-| Lokasi | Layanan lokasi Windows, BigDataCloud (nama tempat) |
+| Lokasi | Layanan lokasi Windows, BigDataCloud (nama tempat), OpenStreetMap Nominatim (cadangan pencarian) |
 | Tampilan | Ikon Meteocons, animasi FluentTransitions |
 | Pengujian | xUnit, UI Automation |
 
@@ -203,7 +203,9 @@ Menjalankan dari kode sumber: `dotnet run --project Swasana`; menjalankan test: 
 - Data cuaca, kualitas udara, dan geocoding: [Open-Meteo](https://open-meteo.com) (CC BY 4.0)
 - Peringatan dini cuaca: [BMKG](https://www.bmkg.go.id/alerts/nowcast/id)
 - Nama tempat dari koordinat: [BigDataCloud](https://www.bigdatacloud.com)
-- Ikon cuaca: [Meteocons](https://github.com/basmilius/meteocons) oleh Bas Milius (MIT)
+- Ikon cuaca dan animasinya: [Meteocons](https://github.com/basmilius/meteocons) oleh Bas Milius (MIT)
+- Ikon aplikasi: [Fluent Emoji](https://github.com/microsoft/fluentui-emoji) oleh Microsoft (MIT)
+- Pencarian lokasi cadangan: [OpenStreetMap Nominatim](https://nominatim.openstreetmap.org) (data © kontributor OpenStreetMap, ODbL)
 - Animasi: [FluentTransitions](https://github.com/awaescher/FluentTransitions) (MIT)
 - Driver PostgreSQL: [Npgsql](https://www.npgsql.org)
 

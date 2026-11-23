@@ -1,4 +1,4 @@
-using Swasana.Data;
+﻿using Swasana.Data;
 using Swasana.Models;
 
 namespace Swasana
@@ -11,10 +11,12 @@ namespace Swasana
         public FormUtama(DatabaseContext db, User user)
         {
             InitializeComponent();
+            Icon = Tema.IkonAplikasi;
             this.db = db;
             this.user = user;
             lblUser.Text = "Halo, " + user.Username;
             picLogo.Image = Ikon.Muat("partly-cloudy-day");
+            Animasi.IkonHidup(picLogo, this, "partly-cloudy-day");
             btnCekCuaca.Image = new Bitmap(Ikon.Muat("partly-cloudy-day"), 40, 40);
             btnRiwayat.Image = new Bitmap(Ikon.Muat("raindrop-measure"), 40, 40);
             Animasi.FadeIn(this);
