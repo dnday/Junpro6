@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Swasana.Models;
 
 namespace Swasana
@@ -18,6 +18,30 @@ namespace Swasana
                 cache[nama] = gambar;
             }
             return gambar;
+        }
+
+        // Ikon cuaca beranimasi: frame dari animasi resmi Meteocons (@meteocons/svg, MIT) yang dirender
+        // menjadi lembar 10 kolom, 168 px per frame, 15 fps, berulang tiap 6 detik.
+        // Hanya frame ikon yang sedang tampil yang disimpan di memori. Null kalau ikon tidak punya animasi.
+        private const int UkuranFrame = 168, FpsAnimasi = 15;
+        private static (string Nama, Bitmap[] Frame)? animasi;
+
+        public static Image? FrameAnimasi(string nama, double detik)
+        {
+            if (animasi?.Nama != nama)
+            {
+                using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"Animasi.{nama}.png");
+                if (stream == null) return null;
+                using var lembar = new Bitmap(stream);
+                int jumlah = lembar.Width / UkuranFrame * (lembar.Height / UkuranFrame);
+                var frame = new Bitmap[jumlah];
+                for (int i = 0; i < jumlah; i++)
+                    frame[i] = lembar.Clone(new Rectangle(i % 10 * UkuranFrame, i / 10 * UkuranFrame, UkuranFrame, UkuranFrame), lembar.PixelFormat);
+                if (animasi is { } lama) foreach (var b in lama.Frame) b.Dispose();
+                animasi = (nama, frame);
+            }
+            var f = animasi.Value.Frame;
+            return f[(int)(detik * FpsAnimasi) % f.Length];
         }
 
         public static Image Status(RiskLevel level) => Muat(level switch
