@@ -31,7 +31,6 @@ public class TampilanTests
     public void NilaiAturan_MenampilkanNilaiYangDinilai()
     {
         var data = new WeatherData { Temperature = 31.5, Rainfall = 2, WindSpeed = 12, UvIndex = 7.2, Aqi = null };
-        Assert.Equal("31,5°C", FormatCuaca.NilaiAturan("Suhu udara", data).Replace('.', ','));
         Assert.Equal("tidak tersedia", FormatCuaca.NilaiAturan("Kualitas udara", data));
         Assert.Equal("-", FormatCuaca.NilaiAturan("Aturan lain", data));
     }

@@ -7,13 +7,9 @@ classDiagram
         +Evaluate(WeatherData)* RiskLevel
         #Klasifikasi(nilai, batasWaspada, batasBahaya)$ RiskLevel
     }
-    class SuhuRule {
-        -BatasWaspada = 33
-        -BatasBahaya = 35
-        +Evaluate(WeatherData) RiskLevel
-    }
     class HujanRule {
-        -HujanSedang = 5
+        -HujanLebat = 10
+        -HujanSangatLebat = 20
         +Evaluate(WeatherData) RiskLevel
     }
     class HujanAnginRule {
@@ -78,10 +74,9 @@ classDiagram
         +NilaiAturan(nama, WeatherData) string
     }
 
-    RiskRule <|-- SuhuRule
     RiskRule <|-- HujanRule
     RiskRule <|-- HujanAnginRule
     RiskRule <|-- UvRule
     RiskRule <|-- HeatIndexRule
     RiskRule <|-- KualitasUdaraRule
-    RiskEvaluator o-- "6" RiskRule
+    RiskEvaluator o-- "5" RiskRule

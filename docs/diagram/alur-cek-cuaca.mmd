@@ -11,7 +11,7 @@ flowchart TD
     G -->|Ya| I[Ambil cuaca, prakiraan, dan kualitas udara dari Open-Meteo]
     I --> J{Berhasil?}
     J -->|Tidak| K[Pesan: periksa koneksi internet] --> B
-    J -->|Ya| L[RiskEvaluator menjalankan 6 aturan risiko]
+    J -->|Ya| L[RiskEvaluator menjalankan 5 aturan risiko]
     L --> M[Status = tingkat tertinggi: Aman / Waspada / Bahaya]
     M --> N[ActionRecommender mengambil saran dari database]
     N --> O[Tampilkan hasil, adegan animasi, dan kartu saran]

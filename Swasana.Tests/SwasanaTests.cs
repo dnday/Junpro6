@@ -1,4 +1,4 @@
-using Swasana.Models;
+﻿using Swasana.Models;
 using Swasana.Services;
 
 namespace Swasana.Tests;
@@ -8,25 +8,25 @@ public class RiskEvaluatorTests
     private readonly RiskEvaluator evaluator = new RiskEvaluator();
 
     [Theory]
-    [InlineData(30, 0, 10, RiskLevel.Aman)]       // cerah
-    [InlineData(33, 0, 10, RiskLevel.Aman)]       // tepat 33 C belum Waspada
-    [InlineData(34, 0, 10, RiskLevel.Waspada)]    // panas > 33 C
-    [InlineData(28, 5, 10, RiskLevel.Waspada)]    // hujan sedang
-    [InlineData(28, 12, 20, RiskLevel.Waspada)]   // hujan lebat tanpa angin kencang
-    [InlineData(36, 0, 10, RiskLevel.Bahaya)]     // panas > 35 C
-    [InlineData(27, 15, 50, RiskLevel.Bahaya)]    // hujan lebat + angin kencang
-    public void EvaluateRisk_MengikutiAturanModul1(double suhu, double hujan, double angin, RiskLevel harapan)
+    [InlineData(30, 0, 10, RiskLevel.Aman)]       // cerah, kering
+    [InlineData(28, 9.9, 10, RiskLevel.Aman)]     // hujan sedang (BMKG 5-10 mm/jam) belum Waspada
+    [InlineData(28, 10, 10, RiskLevel.Waspada)]   // hujan lebat (BMKG 10-20 mm/jam)
+    [InlineData(28, 19.9, 20, RiskLevel.Waspada)] // masih hujan lebat
+    [InlineData(28, 20, 20, RiskLevel.Bahaya)]    // mulai 20 mm/jam: cuaca ekstrem BMKG
+    [InlineData(27, 15, 45, RiskLevel.Waspada)]   // angin tepat 45 km/jam belum "di atas 25 knot"
+    [InlineData(27, 15, 46, RiskLevel.Bahaya)]    // hujan lebat + angin kencang
+    public void EvaluateRisk_HujanDanAnginSesuaiBmkg(double suhu, double hujan, double angin, RiskLevel harapan)
     {
-        var data = new WeatherData { Temperature = suhu, Rainfall = hujan, WindSpeed = angin };
+        var data = new WeatherData { Temperature = suhu, Humidity = 0, Rainfall = hujan, WindSpeed = angin };
         Assert.Equal(harapan, evaluator.evaluateRisk(data));
     }
 
     [Fact]
     public void Rincian_BerisiSemuaAturan()
     {
-        var rincian = evaluator.rincian(new WeatherData { Temperature = 36 });
-        Assert.Equal(6, rincian.Count);
-        Assert.Contains(rincian, r => r.Level == RiskLevel.Bahaya);
+        var rincian = evaluator.rincian(new WeatherData { Temperature = 34, Humidity = 75 });
+        Assert.Equal(5, rincian.Count);
+        Assert.Contains(rincian, r => r.Nama == "Heat index" && r.Level == RiskLevel.Bahaya);
     }
 }
 

@@ -25,7 +25,6 @@ public static class FormatCuaca
     // Nilai yang dinilai tiap aturan, supaya alasan status terbaca jelas
     public static string NilaiAturan(string nama, WeatherData d) => nama switch
     {
-        "Suhu udara" => $"{d.Temperature:0.#}°C",
         "Curah hujan" => $"{d.Rainfall:0.#} mm/j",
         "Hujan + angin" => $"{d.Rainfall:0.#} mm/j, {d.WindSpeed:0.#} km/j",
         "Indeks UV" => $"{d.UvIndex:0.#}",

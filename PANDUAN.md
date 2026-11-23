@@ -85,16 +85,28 @@ Skema SQL lengkap ada di `swasana_schema.sql` jika ingin dijalankan manual lewat
 
 ### Aturan risiko
 
-Status akhir = tingkat tertinggi dari enam aturan berikut:
+Status akhir = tingkat tertinggi dari lima aturan berikut. Ambangnya diambil dari peraturan BMKG, pedoman resmi, dan jurnal.
 
-| Aturan | Waspada | Bahaya |
-|---|---|---|
-| Suhu udara | > 33 °C | > 35 °C |
-| Curah hujan | ≥ 5 mm/jam | – |
-| Hujan + angin | – | hujan ≥ 10 mm/jam **dan** angin ≥ 45 km/jam |
-| Indeks UV (skala WHO) | ≥ 8 | ≥ 11 |
-| Heat index (suhu + kelembapan, rumus NOAA) | ≥ 32 °C | ≥ 41 °C |
-| Kualitas udara (US AQI) | 101–150 | ≥ 151 |
+| Aturan | Waspada | Bahaya | Rujukan |
+|---|---|---|---|
+| Curah hujan | hujan lebat, 10 sampai di bawah 20 mm/jam | hujan sangat lebat, mulai 20 mm/jam | [1], [2] |
+| Hujan dan angin | – | hujan mulai 10 mm/jam dan angin di atas 45 km/jam (25 knot) | [1] |
+| Indeks UV | sangat tinggi, 8–10 | ekstrem, mulai 11 | [3], [4] |
+| Heat index (dari suhu dan kelembapan) | *extreme caution*, 32–41 °C | *danger*, mulai 41 °C | [5], [6] |
+| Kualitas udara (US AQI) | tidak sehat bagi kelompok sensitif, 101–150 | tidak sehat, mulai 151 | [7], [8] |
+
+Aturan suhu udara saja (di atas 33/35 °C) dihapus karena ambang itu tidak ada di peraturan BMKG maupun jurnal; BMKG mendefinisikan suhu ekstrem sebagai penyimpangan dari normal setempat. Penilaian panas memakai heat index, yang menggabungkan suhu dan kelembapan.
+
+**Rujukan**
+
+1. Badan Meteorologi, Klimatologi, dan Geofisika. (2010). *Peraturan Kepala BMKG Nomor Kep.009 Tahun 2010 tentang Prosedur Standar Operasional Pelaksanaan Peringatan Dini, Pelaporan, dan Diseminasi Informasi Cuaca Ekstrem* (Berita Negara RI 2010 No. 497). Kriteria cuaca ekstrem: hujan lebat mulai 20 mm/jam, angin kencang di atas 25 knot (45 km/jam). Kini digantikan Peraturan BMKG Nomor 9 Tahun 2022.
+2. Lestari, T. A., dkk. Analisis hujan sangat lebat yang menyebabkan genangan di sebagian wilayah Jakarta menggunakan citra radar (studi kasus 18 Januari 2022). *Universitas Negeri Jakarta*. https://journal.unj.ac.id/unj/index.php/castle/article/view/67087 (kategori intensitas hujan BMKG; lebih dari 20 mm/jam tergolong sangat lebat).
+3. World Health Organization. (2002). *Global Solar UV Index: A Practical Guide*. WHO, WMO, UNEP, ICNIRP.
+4. Fioletov, V., Kerr, J. B., & Fergusson, A. (2010). The UV Index: definition, distribution and factors affecting it. *Canadian Journal of Public Health, 101*(4), I5–I9. https://doi.org/10.1007/BF03405303
+5. Rothfusz, L. P. (1990). *The Heat Index "Equation"* (NWS Technical Attachment SR 90-23). National Weather Service.
+6. Anderson, G. B., Bell, M. L., & Peng, R. D. (2013). Methods to calculate the heat index as an exposure metric in environmental health research. *Environmental Health Perspectives, 121*(10), 1111–1119. https://doi.org/10.1289/ehp.1206273
+7. U.S. Environmental Protection Agency. (2018). *Technical Assistance Document for the Reporting of Daily Air Quality – the Air Quality Index (AQI)* (EPA-454/B-18-007).
+8. Plaia, A., & Ruggieri, M. (2011). Air quality indices: a review. *Reviews in Environmental Science and Bio/Technology, 10*(2), 165–179. https://doi.org/10.1007/s11157-010-9227-2
 
 ### Animasi
 

@@ -1,4 +1,4 @@
-using Swasana.Models;
+﻿using Swasana.Models;
 
 namespace Swasana.Services;
 
@@ -11,7 +11,6 @@ public class RiskEvaluator
     {
         rules = new List<RiskRule>
         {
-            new SuhuRule(),
             new HujanRule(),
             new HujanAnginRule(),
             new UvRule(),
@@ -27,8 +26,8 @@ public class RiskEvaluator
 
         foreach (var rule in rules)
         {
-            // Baris ini menjalankan Evaluate() milik SuhuRule, HujanRule, atau
-            // HujanAnginRule sesuai objek yang sedang diproses (polymorphism).
+            // Baris ini menjalankan Evaluate() milik HujanRule, UvRule,
+            // HeatIndexRule, dan seterusnya sesuai objek yang sedang diproses (polymorphism).
             var level = rule.Evaluate(data);
             if (level > hasil) hasil = level;
         }
