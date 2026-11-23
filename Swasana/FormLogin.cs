@@ -1,4 +1,4 @@
-using Swasana.Data;
+﻿using Swasana.Data;
 using Swasana.Models;
 
 namespace Swasana
@@ -11,6 +11,7 @@ namespace Swasana
         public FormLogin(DatabaseContext db)
         {
             InitializeComponent();
+            Icon = Tema.IkonAplikasi;
             Db = db;
             picLogo.Image = Ikon.Muat("partly-cloudy-day");
             Animasi.FadeIn(this);

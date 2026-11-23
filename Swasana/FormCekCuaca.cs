@@ -45,6 +45,8 @@ namespace Swasana
         private readonly System.Windows.Forms.Timer timerAdegan = new System.Windows.Forms.Timer { Interval = 33 };   // ~30 fps
         private readonly System.Diagnostics.Stopwatch jamAdegan = System.Diagnostics.Stopwatch.StartNew();
         private double detikTerakhir;
+        private int? picCuacaTop;   // posisi asli ikon cuaca, titik tengah gerak melayang
+        private readonly List<(Label Nilai, Shimmer Kilau)> kerangka = new();
 
         // Animasi kartu rekomendasi: muncul bergantian sambil bergeser dari kanan
         private readonly System.Windows.Forms.Timer timerKartu = new System.Windows.Forms.Timer { Interval = 15 };
@@ -54,6 +56,7 @@ namespace Swasana
         public FormCekCuaca(DatabaseContext db, User user)
         {
             InitializeComponent();
+            Icon = Tema.IkonAplikasi;
             Tema.BatasiKeLayar(this);
             komponen = new KomponenCuaca(this);
             this.user = user;
@@ -87,6 +90,9 @@ namespace Swasana
                 var sekarang = jamAdegan.Elapsed.TotalSeconds;
                 adegan.Tick(pnlHero.Size, Math.Min(sekarang - detikTerakhir, 0.1));
                 detikTerakhir = sekarang;
+                // Ikon cuaca melayang pelan naik-turun, terinspirasi ikon animasi Meteocons
+                picCuacaTop ??= picCuaca.Top;
+                picCuaca.Top = picCuacaTop.Value + (int)Math.Round(Math.Sin(sekarang * 2 * Math.PI / 3.2) * komponen.Px(4));
                 pnlHero.Invalidate();
             };
             FormClosed += (s, e) => { timerAdegan.Stop(); timerKartu.Stop(); timerSaran.Stop(); batalSaran?.Cancel(); batalSaran?.Dispose(); tip.Dispose(); };
@@ -420,11 +426,13 @@ namespace Swasana
             lblTerasa.Text = $"Terasa seperti {data.ApparentTemperature:0}°";
 
             // Kotak detail
-            IsiPas(lblKelembapan, $"{data.Humidity:0} %");
-            IsiPas(lblAngin, $"{data.WindSpeed:0.#} km/j");
-            IsiPas(lblHujan, $"{data.Rainfall:0.#} mm/j");
-            IsiPas(lblUv, $"{data.UvIndex:0.#} {FormatCuaca.KategoriUv(data.UvIndex)}");
-            IsiPas(lblUdara, data.Aqi is int aqi ? $"{aqi} {FormatCuaca.KategoriAqi(aqi)}" : "-");
+            IsiAngka(lblKelembapan, data.Humidity, v => $"{v:0} %");
+            IsiAngka(lblAngin, data.WindSpeed, v => $"{v:0.#} km/j");
+            IsiAngka(lblHujan, data.Rainfall, v => $"{v:0.#} mm/j");
+            var kategoriUv = FormatCuaca.KategoriUv(data.UvIndex);
+            IsiAngka(lblUv, data.UvIndex, v => $"{v:0.#} {kategoriUv}");
+            var kategoriAqi = data.Aqi is int aqi ? FormatCuaca.KategoriAqi(aqi) : "";
+            IsiAngka(lblUdara, data.Aqi, v => $"{v:0} {kategoriAqi}");
 
             dataTerakhir = data;
             TampilkanPrakiraan();
@@ -443,6 +451,19 @@ namespace Swasana
             TampilkanRekomendasi(data.RiskLevel);
             lblSumber.Text = $"Data cuaca Open-Meteo pukul {data.Timestamp:HH:mm} waktu setempat."
                 + (data.PeringatanBmkg != null ? " Peringatan dini dari BMKG." : "");
+        }
+
+        // Nilai terakhir tiap kotak detail, titik awal animasi angka berjalan
+        private readonly Dictionary<Label, double> nilaiDetail = new();
+
+        private void IsiAngka(Label label, double? nilai, Func<double, string> format)
+        {
+            var akhir = nilai is double v ? format(v) : "-";
+            IsiPas(label, akhir);   // ukuran font ditentukan dari teks akhir
+            if (nilai is not double baru) { nilaiDetail.Remove(label); return; }
+            var lama = nilaiDetail.TryGetValue(label, out var x) ? x : 0;
+            nilaiDetail[label] = baru;
+            Animasi.Hitung(label, lama, baru, format, akhir);
         }
 
         // Isi nilai kotak detail; font dikecilkan (paling kecil 8 pt) kalau teksnya lebih lebar dari kotak,
@@ -497,6 +518,7 @@ namespace Swasana
                     $"{h.SuhuMaks:0}° / {h.SuhuMin:0}°", Tema.HurufSuhuHarian, h.PeluangHujan, 67));
             }
             flowJam.ResumeLayout();
+            Animasi.Bergiliran(flowJam.Controls.Cast<Control>().ToList());
         }
 
         private void TampilkanPerJam(List<PrakiraanJam> jam)
@@ -510,6 +532,7 @@ namespace Swasana
                     $"{j.Suhu:0}°", Tema.HurufSuhuJam, j.PeluangHujan, 58));
             }
             flowJam.ResumeLayout();
+            Animasi.Bergiliran(flowJam.Controls.Cast<Control>().ToList());
         }
 
         private void TampilkanRekomendasi(RiskLevel level)
@@ -574,6 +597,29 @@ namespace Swasana
 
         private void Pesan(string teks, bool error = true) => Tema.Pesan(lblPesan, teks, error);
 
+        // Placeholder berkilau (shimmer) menggantikan nilai kotak detail selama data dimuat.
+        // Dibuat saat pertama dipakai, setelah form selesai diskalakan sesuai DPI.
+        private void Kerangka(bool tampil)
+        {
+            if (kerangka.Count == 0)
+                foreach (var nilai in new[] { lblKelembapan, lblAngin, lblHujan, lblUv, lblUdara })
+                {
+                    var kilau = new Shimmer
+                    {
+                        Visible = false,
+                        Bounds = new Rectangle(nilai.Left, nilai.Top + komponen.Px(4), nilai.Parent!.ClientSize.Width - nilai.Left * 2, komponen.Px(14))
+                    };
+                    nilai.Parent.Controls.Add(kilau);
+                    kilau.BringToFront();
+                    kerangka.Add((nilai, kilau));
+                }
+            foreach (var (nilai, kilau) in kerangka)
+            {
+                kilau.Visible = tampil;
+                nilai.Visible = !tampil;
+            }
+        }
+
         // Kunci tombol selama proses berjalan; kesalahan ditampilkan di form, bukan di kotak dialog
         private async Task Jalankan(string pesanProses, Func<Task<bool>> aksi)
         {
@@ -582,6 +628,7 @@ namespace Swasana
             Cursor = Cursors.WaitCursor;
             Pesan(pesanProses, error: false);
             loading.Mulai();
+            Kerangka(true);
             try
             {
                 if (await aksi()) Pesan("");
@@ -613,6 +660,7 @@ namespace Swasana
             finally
             {
                 loading.Berhenti();
+                Kerangka(false);
                 btnCek.Enabled = btnLokasiSaya.Enabled = true;
                 Cursor = Cursors.Default;
             }

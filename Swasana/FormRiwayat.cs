@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Text;
 using Swasana.Data;
 using Swasana.Models;
@@ -18,6 +18,7 @@ namespace Swasana
         public FormRiwayat(DatabaseContext db, User user)
         {
             InitializeComponent();
+            Icon = Tema.IkonAplikasi;
             history = new WeatherHistoryManager(db);
             this.user = user;
             Animasi.FadeIn(this);

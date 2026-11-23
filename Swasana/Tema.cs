@@ -5,6 +5,9 @@ namespace Swasana
     // Warna dan gaya bersama semua form, supaya tampilan konsisten
     public static class Tema
     {
+        // Ikon aplikasi (juga dipakai exe lewat ApplicationIcon di Swasana.csproj)
+        public static readonly Icon IkonAplikasi = new Icon(typeof(Tema).Assembly.GetManifestResourceStream("swasana.ico")!);
+
         public static readonly Color Langit = Color.FromArgb(15, 76, 92);      // header & tombol utama
         public static readonly Color Kabut = Color.FromArgb(243, 246, 248);    // latar form
         public static readonly Color Tinta = Color.FromArgb(28, 43, 54);       // teks utama

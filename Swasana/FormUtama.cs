@@ -1,4 +1,4 @@
-using Swasana.Data;
+﻿using Swasana.Data;
 using Swasana.Models;
 
 namespace Swasana
@@ -11,6 +11,7 @@ namespace Swasana
         public FormUtama(DatabaseContext db, User user)
         {
             InitializeComponent();
+            Icon = Tema.IkonAplikasi;
             this.db = db;
             this.user = user;
             lblUser.Text = "Halo, " + user.Username;
