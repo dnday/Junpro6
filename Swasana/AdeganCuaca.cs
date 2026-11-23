@@ -1,4 +1,4 @@
-﻿using System.Drawing.Drawing2D;
+using System.Drawing.Drawing2D;
 
 namespace Swasana
 {
@@ -95,11 +95,10 @@ namespace Swasana
             if (jenis == Jenis.Kosong) return;
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
-            if (jenis is Jenis.Berawan or Jenis.Hujan or Jenis.Badai) GambarAwan(g, area);
-
             switch (jenis)
             {
                 case Jenis.Malam: GambarMalam(g, area); break;
+                case Jenis.Berawan: GambarAwan(g, area); break;
                 case Jenis.Kabut: GambarKabut(g, area); break;
                 case Jenis.Cerah: GambarBurung(g, area); break;
                 case Jenis.Panas:
@@ -160,27 +159,15 @@ namespace Swasana
             g.FillEllipse(langit, 276, 10, 24, 24);
         }
 
-        // Awan berlapis (parallax): lapis jauh kecil, pudar, dan lambat; lapis dekat besar dan lebih cepat
         private void GambarAwan(Graphics g, Size area)
         {
-            var gelap = jenis is Jenis.Hujan or Jenis.Badai;
-            (int Jumlah, float Kecepatan, float Skala, int Alpha, float Y)[] lapis =
+            using var kuas = new SolidBrush(Color.FromArgb(55, 255, 255, 255));
+            for (int i = 0; i < 3; i++)
             {
-                (4, 0.10f, 0.6f, gelap ? 22 : 28, 16),
-                (3, 0.32f, 1.0f, gelap ? 40 : 50, 40),
-            };
-            foreach (var (jumlah, kecepatan, skala, alpha, y0) in lapis)
-            {
-                using var kuas = new SolidBrush(Color.FromArgb(alpha, 255, 255, 255));
-                var rentang = area.Width + 200 * skala;
-                for (int i = 0; i < jumlah; i++)
-                {
-                    var x = (t * kecepatan + i * rentang / jumlah) % rentang - 140 * skala;
-                    var y = y0 + (i % 2) * 22 * skala;
-                    g.FillEllipse(kuas, x, y, 90 * skala, 30 * skala);
-                    g.FillEllipse(kuas, x + 22 * skala, y - 13 * skala, 52 * skala, 32 * skala);
-                    g.FillEllipse(kuas, x + 48 * skala, y - 6 * skala, 40 * skala, 26 * skala);
-                }
+                var x = (t * (0.25f + i * 0.1f) + i * 190) % (area.Width + 160) - 160;
+                var y = 18 + i * 34;
+                g.FillEllipse(kuas, x, y, 90, 30);
+                g.FillEllipse(kuas, x + 28, y - 14, 60, 34);
             }
         }
 
