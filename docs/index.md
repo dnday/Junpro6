@@ -30,6 +30,7 @@ Video demo (±2 menit): masuk, saran lokasi, status risiko, peringatan dini BMKG
 - [Teknologi](#teknologi)
 - [Tim](#tim)
 - [Kredit](#kredit)
+- [Lisensi](#lisensi)
 
 ## Latar belakang
 
@@ -212,3 +213,7 @@ Menjalankan dari kode sumber: `dotnet run --project Swasana`; menjalankan test: 
 - Ikon cuaca: [Meteocons](https://github.com/basmilius/meteocons) oleh Bas Milius (MIT)
 - Animasi: [FluentTransitions](https://github.com/awaescher/FluentTransitions) (MIT)
 - Driver PostgreSQL: [Npgsql](https://www.npgsql.org)
+
+## Lisensi
+
+Kode SWASANA dirilis dengan [lisensi MIT](https://github.com/dnday/Junpro6/blob/main/LICENSE). Komponen pihak ketiga di atas memakai lisensinya masing-masing.
