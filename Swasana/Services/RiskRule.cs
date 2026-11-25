@@ -2,8 +2,7 @@ using Swasana.Models;
 
 namespace Swasana.Services;
 
-// Induk seluruh aturan risiko. Tiap aturan menilai data cuaca dari sudut pandangnya
-// sendiri (suhu saja, hujan saja, atau gabungan hujan dan angin).
+// Induk 
 public abstract class RiskRule
 {
     // public: nama aturan boleh dibaca class lain untuk ditampilkan ke layar
@@ -41,8 +40,7 @@ public class SuhuRule : RiskRule
     }
 }
 
-// Hujan sedang (mulai 5 mm/jam) -> Waspada.
-// Hujan saja tidak pernah langsung Bahaya, sesuai aturan pada Modul 1.
+
 public class HujanRule : RiskRule
 {
     private const double HujanSedang = 5;     // mm/jam
@@ -55,9 +53,6 @@ public class HujanRule : RiskRule
     }
 }
 
-// Hujan lebat yang disertai angin kencang -> Bahaya.
-// Aturan ini membaca dua parameter sekaligus, jadi isi Evaluate()-nya berbeda
-// dari dua aturan di atas walaupun dipanggil lewat method yang sama.
 public class HujanAnginRule : RiskRule
 {
     private const double HujanLebat = 10;     // mm/jam

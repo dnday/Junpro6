@@ -4,7 +4,6 @@ using Swasana.Models;
 
 namespace Swasana.Data;
 
-// Proses "simpan & ambil lokasi pantauan" milik user.
 public class LocationRepository : BaseRepository<Location>
 {
     public LocationRepository(DatabaseContext context) : base(context) { }
@@ -45,7 +44,6 @@ public class LocationRepository : BaseRepository<Location>
             UserId = Convert.ToInt32(row["user_id"]),
             Name = Convert.ToString(row["city_name"]) ?? ""
         };
-        // Lewat setLocation() supaya validasi rentang koordinat tetap berlaku
         location.setLocation(Convert.ToDouble(row["latitude"]), Convert.ToDouble(row["longitude"]));
         return location;
     }
